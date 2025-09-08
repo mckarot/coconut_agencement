@@ -61,7 +61,7 @@
 - [x] 40. Permettre à l'artisan et au client de voir leur historique respectif.
 
 ## Tests et déploiement (41-44)
-- [x] 41. Réaliser des tests fonctionnels sur chaque fonctionnalité.
-- [x] 42. Corriger les bugs identifiés.
+- [ ] 41. Réaliser des tests fonctionnels sur chaque fonctionnalité.
+- [ ] 42. Corriger les bugs identifiés.
 - [ ] 43. Préparer le déploiement (icônes, descriptions, etc.).
 - [ ] 44. Publier l'application sur les stores (Google Play/App Store).

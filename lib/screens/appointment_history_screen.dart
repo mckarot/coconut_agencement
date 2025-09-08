@@ -29,11 +29,18 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
   }
 
   Future<void> _loadAppointments() async {
+    setState(() {
+      _isLoading = true;
+    });
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final appointmentProvider =
           Provider.of<AppointmentProvider>(context, listen: false);
       final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+      if (authProvider.userId == null) {
+        throw Exception("Utilisateur non connecté.");
+      }
 
       // Charger les rendez-vous en fonction du rôle de l'utilisateur
       if (widget.isArtisanView) {
@@ -66,16 +73,18 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
         }
       }
 
-      setState(() {
-        _appointments = filteredAppointments;
-        _userDetails = userDetails;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
       if (mounted) {
+        setState(() {
+          _appointments = filteredAppointments;
+          _userDetails = userDetails;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text('Erreur lors du chargement des rendez-vous: $e')),

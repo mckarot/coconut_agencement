@@ -40,19 +40,21 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
     
     // Charger les rendez-vous et les services au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final appointmentProvider =
-          Provider.of<AppointmentProvider>(context, listen: false);
-      final serviceProvider =
-          Provider.of<ServiceProvider>(context, listen: false);
+      _loadData();
+    });
+  }
+
+  Future<void> _loadData() async {
+    try {
+      final appointmentProvider = Provider.of<AppointmentProvider>(context, listen: false);
+      final serviceProvider = Provider.of<ServiceProvider>(context, listen: false);
       
-      // Charger les rendez-vous de l'artisan
-      appointmentProvider.loadArtisanAppointments(widget.artisanId);
-      
-      // Charger les services
-      serviceProvider.loadServices().then((_) {
+      await appointmentProvider.loadArtisanAppointments(widget.artisanId);
+      await serviceProvider.loadServices();
+
+      if (mounted) {
         setState(() {
           _services = serviceProvider.services;
-          // Si aucun service n'est pré-sélectionné, sélectionner le premier
           if (_selectedService == null && _services.isNotEmpty) {
             _selectedService = _services[0];
             _duration = _selectedService!.defaultDuration;
@@ -60,8 +62,15 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
             _duration = _selectedService!.defaultDuration;
           }
         });
-      });
-    });
+      }
+    } catch (e) {
+      print("Erreur lors du chargement des données: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erreur de chargement: $e"))
+        );
+      }
+    }
   }
 
   @override
@@ -417,7 +426,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
       );
       
       // Retourner à l'écran précédent
-      Navigator.of(context).pop();
+      Navigator.of(context).popUntil((route) => route.isFirst);
     } catch (e) {
       // Afficher un message d'erreur
       ScaffoldMessenger.of(context).showSnackBar(

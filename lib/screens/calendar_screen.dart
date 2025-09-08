@@ -4,7 +4,7 @@ import 'package:table_calendar/table_calendar.dart';
 import '../providers/appointment_provider.dart';
 import '../providers/auth_provider.dart';
 import '../models/appointment_model.dart';
-import 'dart:collection';
+
 
 class CalendarScreen extends StatefulWidget {
   final bool isArtisanView; // true pour l'artisan, false pour le client

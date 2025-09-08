@@ -13,7 +13,7 @@ class ServiceProvider with ChangeNotifier {
   // Charger tous les services
   Future<void> loadServices() async {
     _isLoading = true;
-    notifyListeners();
+    Future.microtask(() => notifyListeners());
 
     try {
       _serviceService.getServices().listen((services) {
@@ -40,7 +40,7 @@ class ServiceProvider with ChangeNotifier {
   // Créer un nouveau service
   Future<void> createService(ServiceModel service) async {
     _isLoading = true;
-    notifyListeners();
+    Future.microtask(() => notifyListeners());
 
     try {
       await _serviceService.createService(service);
@@ -57,7 +57,7 @@ class ServiceProvider with ChangeNotifier {
   // Mettre à jour un service
   Future<void> updateService(String serviceId, ServiceModel service) async {
     _isLoading = true;
-    notifyListeners();
+    Future.microtask(() => notifyListeners());
 
     try {
       await _serviceService.updateService(serviceId, service);
@@ -74,7 +74,7 @@ class ServiceProvider with ChangeNotifier {
   // Supprimer un service
   Future<void> deleteService(String serviceId) async {
     _isLoading = true;
-    notifyListeners();
+    Future.microtask(() => notifyListeners());
 
     try {
       await _serviceService.deleteService(serviceId);

@@ -1,11 +1,17 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
   User? _user;
+
+  AuthProvider() {
+    _authService.user.listen((firebaseUser) {
+      _user = firebaseUser;
+      notifyListeners();
+    });
+  }
 
   User? get user => _user;
 
@@ -15,29 +21,20 @@ class AuthProvider with ChangeNotifier {
 
   String? get userEmail => _user?.email;
 
-  // Stream to track user authentication state
-  Stream<AuthProvider> get authStateChanges {
-    return _authService.user.map((firebaseUser) {
-      _user = firebaseUser;
-      notifyListeners();
-      return this;
-    });
-  }
-
   // Sign in with email and password
-  Future<void> signInWithEmailAndPassword(String email, String password) async {
+  Future<UserCredential> signInWithEmailAndPassword(String email, String password) async {
     try {
-      await _authService.signInWithEmailAndPassword(email, password);
+      return await _authService.signInWithEmailAndPassword(email, password);
     } catch (e) {
       throw Exception(e.toString());
     }
   }
 
   // Register with email and password
-  Future<void> registerWithEmailAndPassword(
+  Future<UserCredential> registerWithEmailAndPassword(
       String email, String password) async {
     try {
-      await _authService.registerWithEmailAndPassword(email, password);
+      return await _authService.registerWithEmailAndPassword(email, password);
     } catch (e) {
       throw Exception(e.toString());
     }

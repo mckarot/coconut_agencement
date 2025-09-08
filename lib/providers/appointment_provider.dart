@@ -13,7 +13,7 @@ class AppointmentProvider with ChangeNotifier {
   // Charger tous les rendez-vous
   Future<void> loadAppointments() async {
     _isLoading = true;
-    notifyListeners();
+    Future.microtask(() => notifyListeners());
 
     try {
       _appointmentService.getAppointments().listen((appointments) {
@@ -31,7 +31,7 @@ class AppointmentProvider with ChangeNotifier {
   // Charger les rendez-vous d'un client
   Future<void> loadClientAppointments(String clientId) async {
     _isLoading = true;
-    notifyListeners();
+    Future.microtask(() => notifyListeners());
 
     try {
       _appointmentService.getClientAppointments(clientId).listen((appointments) {
@@ -49,7 +49,7 @@ class AppointmentProvider with ChangeNotifier {
   // Charger les rendez-vous d'un artisan
   Future<void> loadArtisanAppointments(String artisanId) async {
     _isLoading = true;
-    notifyListeners();
+    Future.microtask(() => notifyListeners());
 
     try {
       _appointmentService.getArtisanAppointments(artisanId).listen((appointments) {

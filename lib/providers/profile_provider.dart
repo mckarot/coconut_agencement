@@ -13,7 +13,7 @@ class ProfileProvider with ChangeNotifier {
   // Charger le profil d'un artisan
   Future<void> loadProfile(String artisanId) async {
     _isLoading = true;
-    notifyListeners();
+    Future.microtask(() => notifyListeners());
 
     try {
       ProfileModel? profileData =
@@ -30,7 +30,7 @@ class ProfileProvider with ChangeNotifier {
   // Créer ou mettre à jour un profil
   Future<void> setProfile(ProfileModel profile) async {
     _isLoading = true;
-    notifyListeners();
+    Future.microtask(() => notifyListeners());
 
     try {
       await _profileService.setProfile(profile);
@@ -46,7 +46,7 @@ class ProfileProvider with ChangeNotifier {
   // Mettre à jour un profil
   Future<void> updateProfile(String artisanId, ProfileModel profile) async {
     _isLoading = true;
-    notifyListeners();
+    Future.microtask(() => notifyListeners());
 
     try {
       await _profileService.updateProfile(artisanId, profile);
@@ -62,7 +62,7 @@ class ProfileProvider with ChangeNotifier {
   // Ajouter une photo au profil
   Future<void> addPhotoToProfile(String artisanId, String photoUrl) async {
     _isLoading = true;
-    notifyListeners();
+    Future.microtask(() => notifyListeners());
 
     try {
       await _profileService.addPhotoToProfile(artisanId, photoUrl);
@@ -93,7 +93,7 @@ class ProfileProvider with ChangeNotifier {
   // Supprimer une photo du profil
   Future<void> removePhotoFromProfile(String artisanId, String photoUrl) async {
     _isLoading = true;
-    notifyListeners();
+    Future.microtask(() => notifyListeners());
 
     try {
       await _profileService.removePhotoFromProfile(artisanId, photoUrl);

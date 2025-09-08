@@ -1,6 +1,8 @@
+import 'package:coconut_agencement/models/user_model.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'providers/auth_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/notification_provider.dart';
@@ -9,11 +11,13 @@ import 'providers/appointment_provider.dart';
 import 'providers/profile_provider.dart';
 import 'screens/auth_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/client_home_screen.dart';
 import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await initializeDateFormatting('fr_FR', null);
   
   // Initialiser le service de notifications
   await NotificationService().init();
@@ -44,13 +48,11 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: Consumer<AuthProvider>(
-        builder: (context, authProvider, _) {
-          return authProvider.isAuthenticated
-              ? const HomeScreen()
-              : const AuthScreen();
-        },
-      ),
+      home: const AuthScreen(),
+      routes: {
+        '/home': (context) => const HomeScreen(),
+        '/client-home': (context) => const ClientHomeScreen(),
+      },
     );
   }
 }

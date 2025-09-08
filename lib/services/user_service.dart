@@ -41,4 +41,20 @@ class UserService {
       throw Exception('Erreur lors de la mise à jour du rôle: $e');
     }
   }
+
+  // Get all artisans
+  Future<List<UserModel>> getArtisans() async {
+    try {
+      QuerySnapshot snapshot = await _firestore
+          .collection('users')
+          .where('role', isEqualTo: 'artisan')
+          .get();
+      
+      return snapshot.docs
+          .map((doc) => UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+          .toList();
+    } catch (e) {
+      throw Exception('Erreur lors de la récupération des artisans: $e');
+    }
+  }
 }

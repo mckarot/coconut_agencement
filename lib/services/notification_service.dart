@@ -27,9 +27,19 @@ class NotificationService {
     // Configurer les notifications locales
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
+        
+    const DarwinInitializationSettings initializationSettingsIOS =
+        DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
 
     final InitializationSettings initializationSettings =
-        InitializationSettings(android: initializationSettingsAndroid);
+        InitializationSettings(
+      android: initializationSettingsAndroid,
+      iOS: initializationSettingsIOS,
+    );
 
     await _localNotificationsPlugin.initialize(initializationSettings);
 
@@ -51,9 +61,19 @@ class NotificationService {
         
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
+        
+    const DarwinInitializationSettings initializationSettingsIOS =
+        DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
 
     final InitializationSettings initializationSettings =
-        InitializationSettings(android: initializationSettingsAndroid);
+        InitializationSettings(
+      android: initializationSettingsAndroid,
+      iOS: initializationSettingsIOS,
+    );
 
     await localNotificationsPlugin.initialize(initializationSettings);
     
@@ -65,9 +85,15 @@ class NotificationService {
       importance: Importance.max,
       priority: Priority.high,
     );
+    
+    const DarwinNotificationDetails iOSNotificationDetails =
+        DarwinNotificationDetails();
 
     const NotificationDetails notificationDetails =
-        NotificationDetails(android: androidNotificationDetails);
+        NotificationDetails(
+      android: androidNotificationDetails,
+      iOS: iOSNotificationDetails,
+    );
 
     await localNotificationsPlugin.show(
       0,
@@ -87,9 +113,15 @@ class NotificationService {
       importance: Importance.max,
       priority: Priority.high,
     );
+    
+    const DarwinNotificationDetails iOSNotificationDetails =
+        DarwinNotificationDetails();
 
     const NotificationDetails notificationDetails =
-        NotificationDetails(android: androidNotificationDetails);
+        NotificationDetails(
+      android: androidNotificationDetails,
+      iOS: iOSNotificationDetails,
+    );
 
     await _localNotificationsPlugin.show(
       0,
@@ -113,9 +145,15 @@ class NotificationService {
       importance: Importance.max,
       priority: Priority.high,
     );
+    
+    const DarwinNotificationDetails iOSNotificationDetails =
+        DarwinNotificationDetails();
 
     const NotificationDetails notificationDetails =
-        NotificationDetails(android: androidNotificationDetails);
+        NotificationDetails(
+      android: androidNotificationDetails,
+      iOS: iOSNotificationDetails,
+    );
 
     await _localNotificationsPlugin.zonedSchedule(
       0,
@@ -143,9 +181,15 @@ class NotificationService {
       importance: Importance.max,
       priority: Priority.high,
     );
+    
+    const DarwinNotificationDetails iOSNotificationDetails =
+        DarwinNotificationDetails();
 
     const NotificationDetails notificationDetails =
-        NotificationDetails(android: androidNotificationDetails);
+        NotificationDetails(
+      android: androidNotificationDetails,
+      iOS: iOSNotificationDetails,
+    );
 
     await _localNotificationsPlugin.show(
       0,

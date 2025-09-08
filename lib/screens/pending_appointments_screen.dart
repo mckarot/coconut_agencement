@@ -149,6 +149,7 @@ class _PendingAppointmentsScreenState extends State<PendingAppointmentsScreen> {
                     final client = _clientDetails[appointment.clientId];
 
                     return Card(
+                      key: ValueKey(appointment.id),
                       margin: const EdgeInsets.all(8.0),
                       child: ListTile(
                         title: Text(
