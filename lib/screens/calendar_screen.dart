@@ -1,0 +1,199 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:table_calendar/table_calendar.dart';
+import '../providers/appointment_provider.dart';
+import '../providers/auth_provider.dart';
+import '../models/appointment_model.dart';
+import 'dart:collection';
+
+class CalendarScreen extends StatefulWidget {
+  final bool isArtisanView; // true pour l'artisan, false pour le client
+
+  const CalendarScreen({super.key, required this.isArtisanView});
+
+  @override
+  State<CalendarScreen> createState() => _CalendarScreenState();
+}
+
+class _CalendarScreenState extends State<CalendarScreen> {
+  CalendarFormat _calendarFormat = CalendarFormat.month;
+  RangeSelectionMode _rangeSelectionMode = RangeSelectionMode.toggledOff;
+  DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDay;
+  DateTime? _rangeStart;
+  DateTime? _rangeEnd;
+  Map<DateTime, List<AppointmentModel>> _groupedAppointments = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDay = _focusedDay;
+    // Charger les rendez-vous au démarrage
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final appointmentProvider =
+          Provider.of<AppointmentProvider>(context, listen: false);
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      
+      if (widget.isArtisanView) {
+        appointmentProvider.loadArtisanAppointments(authProvider.userId!);
+      } else {
+        appointmentProvider.loadClientAppointments(authProvider.userId!);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final appointmentProvider = Provider.of<AppointmentProvider>(context);
+
+    // Regrouper les rendez-vous par date
+    if (!appointmentProvider.isLoading && appointmentProvider.appointments.isNotEmpty) {
+      _groupedAppointments = groupAppointmentsByDate(appointmentProvider.appointments);
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.isArtisanView 
+            ? 'Mon Planning' 
+            : 'Disponibilités de l\'artisan'),
+      ),
+      body: Column(
+        children: [
+          TableCalendar<AppointmentModel>(
+            firstDay: DateTime.utc(2020, 1, 1),
+            lastDay: DateTime.utc(2030, 12, 31),
+            focusedDay: _focusedDay,
+            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+            rangeStartDay: _rangeStart,
+            rangeEndDay: _rangeEnd,
+            calendarFormat: _calendarFormat,
+            rangeSelectionMode: _rangeSelectionMode,
+            eventLoader: _getEventsForDay,
+            startingDayOfWeek: StartingDayOfWeek.monday,
+            calendarStyle: CalendarStyle(
+              // Style des cellules du calendrier
+              outsideDaysVisible: true,
+              markerSize: 5,
+              markersMaxCount: 3,
+            ),
+            headerStyle: HeaderStyle(
+              formatButtonVisible: true,
+              titleCentered: true,
+            ),
+            onDaySelected: _onDaySelected,
+            onFormatChanged: (format) {
+              if (_calendarFormat != format) {
+                setState(() {
+                  _calendarFormat = format;
+                });
+              }
+            },
+            onPageChanged: (focusedDay) {
+              _focusedDay = focusedDay;
+            },
+          ),
+          const SizedBox(height: 8.0),
+          Expanded(
+            child: _buildAppointmentsList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<AppointmentModel> _getEventsForDay(DateTime day) {
+    final normalizedDay = DateTime(day.year, day.month, day.day);
+    return _groupedAppointments[normalizedDay] ?? [];
+  }
+
+  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
+    if (!isSameDay(_selectedDay, selectedDay)) {
+      setState(() {
+        _selectedDay = selectedDay;
+        _focusedDay = focusedDay;
+      });
+    }
+  }
+
+  Map<DateTime, List<AppointmentModel>> groupAppointmentsByDate(
+      List<AppointmentModel> appointments) {
+    Map<DateTime, List<AppointmentModel>> grouped = {};
+    
+    for (var appointment in appointments) {
+      final date = DateTime(
+        appointment.dateTime.year,
+        appointment.dateTime.month,
+        appointment.dateTime.day,
+      );
+      
+      if (grouped[date] == null) {
+        grouped[date] = [];
+      }
+      grouped[date]!.add(appointment);
+    }
+    
+    return grouped;
+  }
+
+  Widget _buildAppointmentsList() {
+    if (_selectedDay == null) {
+      return const Center(child: Text('Sélectionnez un jour pour voir les rendez-vous'));
+    }
+
+    final appointments = _getEventsForDay(_selectedDay!);
+    
+    if (appointments.isEmpty) {
+      return const Center(child: Text('Aucun rendez-vous pour cette date'));
+    }
+
+    return ListView.builder(
+      itemCount: appointments.length,
+      itemBuilder: (context, index) {
+        final appointment = appointments[index];
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+          child: ListTile(
+            title: Text(
+              '${appointment.dateTime.hour}:${appointment.dateTime.minute.toString().padLeft(2, '0')}',
+            ),
+            subtitle: Text(
+              '${appointment.duration} min',
+            ),
+            trailing: _buildStatusIndicator(appointment.status),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatusIndicator(AppointmentStatus status) {
+    Color color;
+    String text;
+    
+    switch (status) {
+      case AppointmentStatus.confirmed:
+        color = Colors.green;
+        text = 'Confirmé';
+        break;
+      case AppointmentStatus.rejected:
+        color = Colors.red;
+        text = 'Rejeté';
+        break;
+      default:
+        color = Colors.orange;
+        text = 'En attente';
+    }
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(color: Colors.white, fontSize: 12.0),
+      ),
+    );
+  }
+}
