@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'appointment_history_screen.dart';
 import 'artisan_list_screen.dart';
-import 'auth_screen.dart';
+import 'welcome_screen.dart';
 
 class ClientHomeScreen extends StatefulWidget {
   const ClientHomeScreen({super.key});
@@ -50,9 +50,9 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
           IconButton(
             onPressed: () async {
               await authProvider.signOut();
-              // After sign out, navigate back to the auth screen
+              // After sign out, navigate back to the welcome screen
               Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => const AuthScreen()),
+                MaterialPageRoute(builder: (context) => const WelcomeScreen()),
                 (Route<dynamic> route) => false,
               );
             },

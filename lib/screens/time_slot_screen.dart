@@ -123,16 +123,30 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
 
   Widget _buildTimeSlots() {
     List<Widget> timeSlots = [];
+    final now = DateTime.now();
+    final isToday = widget.selectedDay.year == now.year &&
+        widget.selectedDay.month == now.month &&
+        widget.selectedDay.day == now.day;
+
     for (int hour = 7; hour < 19; hour++) {
       for (int minute = 0; minute < 60; minute += 30) {
         final time = TimeOfDay(hour: hour, minute: minute);
         final isBooked = _isTimeSlotBooked(time);
 
+        bool isPast = false;
+        if (isToday) {
+          final slotDateTime = DateTime(
+              widget.selectedDay.year, widget.selectedDay.month, widget.selectedDay.day, hour, minute);
+          if (slotDateTime.isBefore(now)) {
+            isPast = true;
+          }
+        }
+
         timeSlots.add(
           ElevatedButton(
-            onPressed: isBooked ? null : () => _showConfirmationDialog(time),
+            onPressed: isBooked || isPast ? null : () => _showConfirmationDialog(time),
             style: ElevatedButton.styleFrom(
-              backgroundColor: isBooked ? Colors.grey : null,
+              backgroundColor: isBooked || isPast ? Colors.grey : null,
             ),
             child: Text('${time.hour}:${time.minute.toString().padLeft(2, '0')}'),
           ),

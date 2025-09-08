@@ -138,9 +138,6 @@ class _PendingAppointmentsScreenState extends State<PendingAppointmentsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Demandes en attente'),
-      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _pendingAppointments.isEmpty

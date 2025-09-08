@@ -1,4 +1,6 @@
 import 'package:coconut_agencement/models/user_model.dart';
+import 'package:coconut_agencement/screens/client_home_screen.dart';
+import 'package:coconut_agencement/screens/home_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -9,9 +11,7 @@ import 'providers/notification_provider.dart';
 import 'providers/service_provider.dart';
 import 'providers/appointment_provider.dart';
 import 'providers/profile_provider.dart';
-import 'screens/auth_screen.dart';
-import 'screens/home_screen.dart';
-import 'screens/client_home_screen.dart';
+import 'screens/welcome_screen.dart';
 import 'services/notification_service.dart';
 
 void main() async {
@@ -48,7 +48,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const AuthScreen(),
+      home: const WelcomeScreen(),
       routes: {
         '/home': (context) => const HomeScreen(),
         '/client-home': (context) => const ClientHomeScreen(),

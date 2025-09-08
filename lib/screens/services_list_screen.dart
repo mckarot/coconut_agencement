@@ -30,24 +30,6 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mes Services'),
-        actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => AddServiceScreen(
-                    artisanId: authProvider.userId!,
-                  ),
-                ),
-              );
-            },
-            icon: const Icon(Icons.add),
-          ),
-        ],
-      ),
       body: serviceProvider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(

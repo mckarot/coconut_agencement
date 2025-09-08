@@ -5,9 +5,8 @@ import '../providers/auth_provider.dart';
 import '../screens/services_list_screen.dart';
 import 'artisans_planning_screen.dart';
 import 'pending_appointments_screen.dart';
-import 'artisan_profile_screen.dart';
 import 'appointment_history_screen.dart';
-import 'auth_screen.dart';
+import 'welcome_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,7 +23,6 @@ class _HomeScreenState extends State<HomeScreen> {
     ArtisanPlanningScreen(),
     PendingAppointmentsScreen(),
     ServicesListScreen(),
-    ArtisanProfileScreen(),
     AppointmentHistoryScreen(isArtisanView: true),
   ];
 
@@ -32,7 +30,6 @@ class _HomeScreenState extends State<HomeScreen> {
     'Mon Planning',
     'Rendez-vous en attente',
     'Mes Services',
-    'Mon Profil',
     'Historique',
   ];
 
@@ -54,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () async {
               await authProvider.signOut();
               Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => const AuthScreen()),
+                MaterialPageRoute(builder: (context) => const WelcomeScreen()),
                 (Route<dynamic> route) => false,
               );
             },
@@ -79,10 +76,6 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.build),
             label: 'Services',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profil',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.history),

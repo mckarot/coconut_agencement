@@ -103,11 +103,6 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.isArtisanView
-            ? 'Historique des rendez-vous clients'
-            : 'Mes rendez-vous'),
-      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
