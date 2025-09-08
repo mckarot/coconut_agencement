@@ -52,18 +52,23 @@ class _PendingAppointmentsScreenState extends State<PendingAppointmentsScreen> {
         }
       }
 
-      setState(() {
-        _pendingAppointments = pendingAppointments;
-        _clientDetails = clientDetails;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _pendingAppointments = pendingAppointments;
+          _clientDetails = clientDetails;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur lors du chargement des rendez-vous: $e')),
+          SnackBar(
+              content: Text('Erreur lors du chargement des rendez-vous: $e')),
         );
       }
     }

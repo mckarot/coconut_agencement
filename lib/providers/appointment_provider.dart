@@ -34,15 +34,12 @@ class AppointmentProvider with ChangeNotifier {
     Future.microtask(() => notifyListeners());
 
     try {
-      _appointmentService.getClientAppointments(clientId).listen((appointments) {
-        _appointments = appointments;
-        _isLoading = false;
-        notifyListeners();
-      });
+      _appointments = await _appointmentService.getClientAppointments(clientId);
     } catch (e) {
+      throw Exception('Erreur lors du chargement des rendez-vous du client: $e');
+    } finally {
       _isLoading = false;
       notifyListeners();
-      throw Exception('Erreur lors du chargement des rendez-vous du client: $e');
     }
   }
 
@@ -52,15 +49,12 @@ class AppointmentProvider with ChangeNotifier {
     Future.microtask(() => notifyListeners());
 
     try {
-      _appointmentService.getArtisanAppointments(artisanId).listen((appointments) {
-        _appointments = appointments;
-        _isLoading = false;
-        notifyListeners();
-      });
+      _appointments = await _appointmentService.getArtisanAppointments(artisanId);
     } catch (e) {
+      throw Exception('Erreur lors du chargement des rendez-vous de l\'artisan: $e');
+    } finally {
       _isLoading = false;
       notifyListeners();
-      throw Exception('Erreur lors du chargement des rendez-vous de l\'artisan: $e');
     }
   }
 

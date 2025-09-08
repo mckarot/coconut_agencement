@@ -15,29 +15,25 @@ class AppointmentService {
   }
 
   // Récupérer les rendez-vous d'un client
-  Stream<List<AppointmentModel>> getClientAppointments(String clientId) {
-    return _firestore
+  Future<List<AppointmentModel>> getClientAppointments(String clientId) async {
+    final snapshot = await _firestore
         .collection(_collection)
         .where('clientId', isEqualTo: clientId)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => AppointmentModel.fromMap(doc.data(), doc.id))
-          .toList();
-    });
+        .get();
+    return snapshot.docs
+        .map((doc) => AppointmentModel.fromMap(doc.data(), doc.id))
+        .toList();
   }
 
   // Récupérer les rendez-vous d'un artisan
-  Stream<List<AppointmentModel>> getArtisanAppointments(String artisanId) {
-    return _firestore
+  Future<List<AppointmentModel>> getArtisanAppointments(String artisanId) async {
+    final snapshot = await _firestore
         .collection(_collection)
         .where('artisanId', isEqualTo: artisanId)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => AppointmentModel.fromMap(doc.data(), doc.id))
-          .toList();
-    });
+        .get();
+    return snapshot.docs
+        .map((doc) => AppointmentModel.fromMap(doc.data(), doc.id))
+        .toList();
   }
 
   // Récupérer un rendez-vous par ID
