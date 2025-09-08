@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -20,11 +21,18 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   List<AppointmentModel> _selectedAppointments = [];
+  Timer? _timer;
+  DateTime _now = DateTime.now();
 
   @override
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
+    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      setState(() {
+        _now = DateTime.now();
+      });
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       if (authProvider.userId != null) {
@@ -34,6 +42,12 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
         _onDaySelected(_selectedDay!, _focusedDay);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadClientDetails() async {
@@ -86,6 +100,7 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
           return Column(
             children: [
               TableCalendar<AppointmentModel>(
+                locale: 'fr_FR',
                 firstDay: DateTime.utc(2020, 1, 1),
                 lastDay: DateTime.utc(2030, 12, 31),
                 focusedDay: _focusedDay,
@@ -109,7 +124,7 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
               ),
               const SizedBox(height: 8.0),
               Expanded(
-                child: _buildAppointmentList(),
+                child: _buildDayView(),
               ),
             ],
           );
@@ -118,32 +133,135 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
     );
   }
 
-  Widget _buildAppointmentList() {
-    if (_selectedAppointments.isEmpty) {
-      return const Center(
-        child: Text('Aucun rendez-vous pour ce jour.'),
+  Widget _buildDayView() {
+    const double hourHeight = 60.0;
+    const double totalHeight = 24 * hourHeight;
+
+    List<Widget> buildHourLines() {
+      List<Widget> lines = [];
+      for (int i = 0; i < 24; i++) {
+        lines.add(
+          Positioned(
+            top: i * hourHeight,
+            left: 50, // space for hour label
+            right: 0,
+            child: Container(
+              height: 1,
+              color: Colors.grey.shade300,
+            ),
+          ),
+        );
+        lines.add(
+          Positioned(
+            top: i * hourHeight - 7, // center the label
+            left: 0,
+            child: SizedBox(
+              width: 50,
+              child: Text(
+                '${i.toString().padLeft(2, '0')}:00',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+              ),
+            ),
+          ),
+        );
+      }
+      return lines;
+    }
+
+    List<Widget> buildAppointmentWidgets() {
+      if (_selectedAppointments.isEmpty) {
+        return [];
+      }
+      _selectedAppointments.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+      List<Widget> widgets = [];
+      for (var appointment in _selectedAppointments) {
+        final top = (appointment.dateTime.hour + appointment.dateTime.minute / 60.0) * hourHeight;
+        final height = (appointment.duration / 60.0) * hourHeight;
+        final client = _clientDetails[appointment.clientId];
+
+        widgets.add(
+          Positioned(
+            top: top,
+            left: 55, // to the right of the hour labels and line
+            right: 10,
+            height: height,
+            child: GestureDetector(
+              onTap: () => _showAppointmentDetails(appointment),
+              child: Card(
+                margin: EdgeInsets.zero,
+                clipBehavior: Clip.antiAlias,
+                color: Colors.orangeAccent.withOpacity(0.8),
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          client?.name ?? client?.email ?? 'Client inconnu',
+                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${DateFormat.Hm('fr_FR').format(appointment.dateTime)} - ${DateFormat.Hm('fr_FR').format(appointment.dateTime.add(Duration(minutes: appointment.duration)))}',
+                          style: const TextStyle(fontSize: 12, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+      return widgets;
+    }
+
+    Widget buildCurrentTimeIndicator() {
+      if (!isSameDay(_selectedDay, _now)) {
+        return const SizedBox.shrink();
+      }
+      final top = (_now.hour + _now.minute / 60.0) * hourHeight;
+      return Positioned(
+        top: top,
+        left: 50,
+        right: 0,
+        child: Row(
+          children: [
+            Container(
+              width: 10,
+              height: 10,
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+            ),
+            Expanded(
+              child: Container(
+                height: 2,
+                color: Colors.red,
+              ),
+            ),
+          ],
+        ),
       );
     }
 
-    _selectedAppointments.sort((a, b) => a.dateTime.compareTo(b.dateTime));
-
-    return ListView.builder(
-      itemCount: _selectedAppointments.length,
-      itemBuilder: (context, index) {
-        final appointment = _selectedAppointments[index];
-        final client = _clientDetails[appointment.clientId];
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: ListTile(
-            title: Text(client?.name ?? client?.email ?? 'Client inconnu'),
-            subtitle: Text(
-              DateFormat.Hm('fr_FR').format(appointment.dateTime),
-            ),
-            trailing: _buildStatusIndicator(appointment.status),
-            onTap: () => _showAppointmentDetails(appointment),
-          ),
-        );
-      },
+    return SingleChildScrollView(
+      child: SizedBox(
+        height: totalHeight,
+        child: Stack(
+          children: [
+            ...buildHourLines(),
+            ...buildAppointmentWidgets(),
+            buildCurrentTimeIndicator(),
+          ],
+        ),
+      ),
     );
   }
 
