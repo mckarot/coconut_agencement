@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:coconut_agencement/models/service_model.dart';
+import 'package:coconut_agencement/providers/service_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -21,6 +23,7 @@ class ArtisanPlanningScreen extends StatefulWidget {
 
 class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
   Map<String, UserModel> _clientDetails = {};
+  Map<String, ServiceModel> _serviceDetails = {};
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   Timer? _timer;
@@ -86,12 +89,18 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
     }
 
     try {
-      final appointmentProvider = Provider.of<AppointmentProvider>(context, listen: false);
+      final appointmentProvider =
+          Provider.of<AppointmentProvider>(context, listen: false);
       final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final serviceProvider =
+          Provider.of<ServiceProvider>(context, listen: false);
 
-      final appointments = await appointmentProvider.getArtisanAppointments(artisanId);
+      final appointments =
+          await appointmentProvider.getArtisanAppointments(artisanId);
 
       final clientDetails = <String, UserModel>{};
+      final serviceDetails = <String, ServiceModel>{};
+
       for (var appointment in appointments) {
         if (!clientDetails.containsKey(appointment.clientId)) {
           final client = await userProvider.getUserById(appointment.clientId);
@@ -99,11 +108,19 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
             clientDetails[appointment.clientId] = client;
           }
         }
+        if (!serviceDetails.containsKey(appointment.serviceId)) {
+          final service =
+              await serviceProvider.getServiceById(appointment.serviceId);
+          if (service != null) {
+            serviceDetails[appointment.serviceId] = service;
+          }
+        }
       }
 
       if (mounted) {
         setState(() {
           _clientDetails = clientDetails;
+          _serviceDetails = serviceDetails;
           _groupAppointments(appointments);
           _isLoading = false;
         });
@@ -111,7 +128,8 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = "Erreur de chargement des rendez-vous: ${e.toString()}";
+          _errorMessage =
+              "Erreur de chargement des rendez-vous: ${e.toString()}";
           _isLoading = false;
         });
       }
@@ -121,8 +139,10 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
   void _groupAppointments(List<AppointmentModel> appointments) {
     final groupedAppointments = <DateTime, List<AppointmentModel>>{};
     for (var appointment in appointments) {
-      final appointmentDate = tz.TZDateTime.from(appointment.dateTime, _location!);
-      final dateKey = DateTime.utc(appointmentDate.year, appointmentDate.month, appointmentDate.day);
+      final appointmentDate =
+          tz.TZDateTime.from(appointment.dateTime, _location!);
+      final dateKey = DateTime.utc(
+          appointmentDate.year, appointmentDate.month, appointmentDate.day);
       if (groupedAppointments[dateKey] == null) {
         groupedAppointments[dateKey] = [];
       }
@@ -147,13 +167,16 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedAppointments = _getAppointmentsForDay(_selectedDay ?? _focusedDay);
+    final selectedAppointments =
+        _getAppointmentsForDay(_selectedDay ?? _focusedDay);
 
     return Scaffold(
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
-              ? Center(child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)))
+              ? Center(
+                  child: Text(_errorMessage!,
+                      style: const TextStyle(color: Colors.red)))
               : Column(
                   children: [
                     TableCalendar<AppointmentModel>(
@@ -165,10 +188,13 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
                       onDaySelected: _onDaySelected,
                       eventLoader: _getAppointmentsForDay,
                       calendarStyle: const CalendarStyle(
-                        todayDecoration: BoxDecoration(color: Colors.blueAccent, shape: BoxShape.circle),
-                        selectedDecoration: BoxDecoration(color: Colors.orangeAccent, shape: BoxShape.circle),
+                        todayDecoration: BoxDecoration(
+                            color: Colors.blueAccent, shape: BoxShape.circle),
+                        selectedDecoration: BoxDecoration(
+                            color: Colors.orangeAccent, shape: BoxShape.circle),
                       ),
-                      headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
+                      headerStyle: const HeaderStyle(
+                          formatButtonVisible: false, titleCentered: true),
                     ),
                     const SizedBox(height: 8.0),
                     Expanded(
@@ -191,6 +217,12 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
     const int endHour = 21;
     final double timelineHeight = (endHour - startHour + 1) * hourHeight;
 
+    final today = _location != null ? tz.TZDateTime.from(DateTime.now(), _location!) : DateTime.now();
+    final isTodaySelected = _selectedDay != null &&
+        _selectedDay!.year == today.year &&
+        _selectedDay!.month == today.month &&
+        _selectedDay!.day == today.day;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: SizedBox(
@@ -206,7 +238,7 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
             ),
             ..._buildHourLabels(hourHeight, startHour, endHour),
             ..._buildAppointmentItems(appointments, hourHeight, startHour),
-            if (isSameDay(_selectedDay, _now))
+            if (isTodaySelected)
               _buildCurrentTimeIndicator(hourHeight, startHour),
           ],
         ),
@@ -236,12 +268,16 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
     return labels;
   }
 
-  List<Widget> _buildAppointmentItems(List<AppointmentModel> appointments, double hourHeight, int startHour) {
+  List<Widget> _buildAppointmentItems(
+      List<AppointmentModel> appointments, double hourHeight, int startHour) {
     return appointments.map((appointment) {
-      final localDateTime = tz.TZDateTime.from(appointment.dateTime, _location!);
-      final double top = ((localDateTime.hour - startHour) * hourHeight) + (localDateTime.minute / 60.0 * hourHeight);
+      final localDateTime =
+          tz.TZDateTime.from(appointment.dateTime, _location!);
+      final double top = ((localDateTime.hour - startHour) * hourHeight) +
+          (localDateTime.minute / 60.0 * hourHeight);
       final double height = (appointment.duration / 60.0) * hourHeight;
       final client = _clientDetails[appointment.clientId];
+      final service = _serviceDetails[appointment.serviceId];
 
       return Positioned(
         top: top,
@@ -257,12 +293,26 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    client?.name ?? client?.email ?? 'Client inconnu',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    children: [
+                      Text(
+                        client?.name ?? client?.email ?? 'Client inconnu',
+                        style: const TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(width: 20.0),
+                      Text(
+                        service?.name ?? 'Service inconnu',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 4.0),
                   Text(
                     '${DateFormat.Hm('fr_FR').format(localDateTime)} - ${DateFormat.Hm('fr_FR').format(localDateTime.add(Duration(minutes: appointment.duration)))}',
                     style: const TextStyle(color: Colors.white, fontSize: 12),
@@ -278,7 +328,8 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
 
   Widget _buildCurrentTimeIndicator(double hourHeight, int startHour) {
     final now = tz.TZDateTime.from(_now, _location!);
-    final double minutesFromStart = (now.hour - startHour) * 60.0 + now.minute;
+    final double minutesFromStart =
+        (now.hour - startHour) * 60.0 + now.minute;
     final double top = minutesFromStart / 60.0 * hourHeight;
 
     if (top < 0 || top > (21 - startHour + 1) * hourHeight) {
@@ -294,7 +345,8 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
           Container(
             width: 10,
             height: 10,
-            decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+            decoration:
+                const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
           ),
           Expanded(
             child: Container(height: 2, color: Colors.red),
@@ -306,7 +358,9 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
 
   void _showAppointmentDetails(AppointmentModel appointment) {
     final client = _clientDetails[appointment.clientId];
-    final localDateTime = tz.TZDateTime.from(appointment.dateTime, _location!);
+    final service = _serviceDetails[appointment.serviceId];
+    final localDateTime =
+        tz.TZDateTime.from(appointment.dateTime, _location!);
 
     showModalBottomSheet(
       context: context,
@@ -317,11 +371,13 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Détails du rendez-vous', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text('Détails du rendez-vous',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16.0),
               Text('Client: ${client?.name ?? 'Non trouvé'}'),
               Text('Email: ${client?.email ?? 'Non trouvé'}'),
               const Divider(height: 20),
+              Text('Service: ${service?.name ?? 'Non trouvé'}'),
               Text('Date: ${DateFormat.yMMMMd('fr_FR').format(localDateTime)}'),
               Text('Heure: ${DateFormat.Hm('fr_FR').format(localDateTime)}'),
               Text('Durée: ${appointment.duration} minutes'),
@@ -332,13 +388,17 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     ElevatedButton(
-                      onPressed: () => _updateAppointmentStatus(appointment, AppointmentStatus.confirmed),
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                      onPressed: () => _updateAppointmentStatus(
+                          appointment, AppointmentStatus.confirmed),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green),
                       child: const Text('Confirmer'),
                     ),
                     ElevatedButton(
-                      onPressed: () => _updateAppointmentStatus(appointment, AppointmentStatus.rejected),
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                      onPressed: () => _updateAppointmentStatus(
+                          appointment, AppointmentStatus.rejected),
+                      style:
+                          ElevatedButton.styleFrom(backgroundColor: Colors.red),
                       child: const Text('Rejeter'),
                     ),
                   ],
@@ -350,16 +410,22 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
     );
   }
 
-  Future<void> _updateAppointmentStatus(AppointmentModel appointment, AppointmentStatus status) async {
+  Future<void> _updateAppointmentStatus(
+      AppointmentModel appointment, AppointmentStatus status) async {
     try {
-      final appointmentProvider = Provider.of<AppointmentProvider>(context, listen: false);
-      final updatedAppointment = appointment.copyWith(status: status, updatedAt: DateTime.now());
-      await appointmentProvider.updateAppointment(appointment.id, updatedAppointment);
+      final appointmentProvider =
+          Provider.of<AppointmentProvider>(context, listen: false);
+      final updatedAppointment =
+          appointment.copyWith(status: status, updatedAt: DateTime.now());
+      await appointmentProvider.updateAppointment(
+          appointment.id, updatedAppointment);
 
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Rendez-vous ${status == AppointmentStatus.confirmed ? 'confirmé' : 'rejeté'}')),
+          SnackBar(
+              content: Text(
+                  'Rendez-vous ${status == AppointmentStatus.confirmed ? 'confirmé' : 'rejeté'}')),
         );
         _loadArtisanAppointments(); // Refresh the list
       }
