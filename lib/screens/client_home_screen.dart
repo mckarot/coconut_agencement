@@ -17,19 +17,11 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
 
   // Écrans pour le client
   static const List<Widget> _clientScreens = [
-    Center(
-      child: Text(
-        ''
-        ,
-        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-      ),
-    ),
     BookingScreen(),
     AppointmentHistoryScreen(isArtisanView: false),
   ];
 
   static const List<String> _clientTitles = [
-    'Accueil',
     'Prendre RDV',
     'Mes rendez-vous',
   ];
@@ -46,7 +38,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Client - ${_clientTitles[_selectedIndex]}'),
+        title: Text('${_clientTitles[_selectedIndex]}'),
         actions: [
           IconButton(
             onPressed: () async {
@@ -61,24 +53,12 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
           ),
         ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/logo.png'),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: _clientScreens[_selectedIndex],
-      ),
+      body: _clientScreens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Accueil',
-          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.add_circle_outline),
             label: 'Prendre RDV',

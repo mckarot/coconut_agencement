@@ -32,6 +32,7 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
   String? _errorMessage;
   Map<DateTime, List<AppointmentModel>> _appointmentsByDay = {};
   tz.Location? _location;
+  CalendarFormat _calendarFormat = CalendarFormat.twoWeeks;
 
   @override
   void initState() {
@@ -193,8 +194,14 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
                         selectedDecoration: BoxDecoration(
                             color: Colors.orangeAccent, shape: BoxShape.circle),
                       ),
+                      calendarFormat: _calendarFormat,
+                      onFormatChanged: (format) {
+                        setState(() {
+                          _calendarFormat = format;
+                        });
+                      },
                       headerStyle: const HeaderStyle(
-                          formatButtonVisible: false, titleCentered: true),
+                          formatButtonVisible: true, titleCentered: true),
                     ),
                     const SizedBox(height: 8.0),
                     Expanded(

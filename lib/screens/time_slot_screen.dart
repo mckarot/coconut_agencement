@@ -26,9 +26,8 @@ class TimeSlotScreen extends StatefulWidget {
 }
 
 class _TimeSlotScreenState extends State<TimeSlotScreen> {
-  List<ServiceModel> _services = [];
   ServiceModel? _selectedService;
-  int _duration = 0;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -38,20 +37,21 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
 
   Future<void> _loadServices() async {
     try {
-      final serviceProvider = Provider.of<ServiceProvider>(context, listen: false);
+      final serviceProvider =
+          Provider.of<ServiceProvider>(context, listen: false);
       await serviceProvider.loadServices();
 
       if (mounted) {
         setState(() {
-          _services = serviceProvider.services;
-          if (_services.isNotEmpty) {
-            _selectedService = _services[0];
-            _duration = _selectedService!.defaultDuration;
+          if (serviceProvider.services.isNotEmpty) {
+            _selectedService = serviceProvider.services.first;
           }
+          _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Erreur de chargement des services: $e")),
         );
@@ -61,110 +61,128 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text('Choisissez un créneau'),
+        title: const Text('Choisissez un créneau'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: theme.colorScheme.onSurface,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Rendez-vous pour le ${DateFormat.yMMMMd('fr_FR').format(widget.selectedDay)}',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16.0),
-            const Text(
-              'Sélectionnez un service :',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8.0),
-            DropdownButton<ServiceModel>(
-              value: _selectedService,
-              hint: const Text('Choisissez un service'),
-              isExpanded: true,
-              items: _services.map((service) {
-                return DropdownMenuItem<ServiceModel>(
-                  value: service,
-                  child: Text(service.name),
-                );
-              }).toList(),
-              onChanged: (ServiceModel? service) {
-                setState(() {
-                  _selectedService = service;
-                  if (service != null) {
-                    _duration = service.defaultDuration;
-                  }
-                });
-              },
-            ),
-            const SizedBox(height: 16.0),
-            if (_selectedService != null) ...[
-              Text(
-                'Durée : $_duration minutes',
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 16.0),
-              const Text(
-                'Horaires disponibles (7h-19h) :',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8.0),
-              Expanded(
-                child: _buildTimeSlots(),
-              ),
+      extendBodyBehindAppBar: true,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              theme.colorScheme.surface,
+              theme.colorScheme.surface.withOpacity(0.9),
             ],
-          ],
+          ),
         ),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 16),
+                      Text(
+                        DateFormat.yMMMMd('fr_FR').format(widget.selectedDay),
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Service: ${_selectedService?.name ?? 'Non sélectionné'}',
+                        style: theme.textTheme.titleMedium,
+                      ),
+                      Text(
+                        'Durée: ${_selectedService?.defaultDuration ?? 0} minutes',
+                        style: theme.textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Horaires disponibles',
+                        style: theme.textTheme.titleLarge
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: _buildTimeSlotsGrid(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
       ),
     );
   }
 
-  Widget _buildTimeSlots() {
-    List<Widget> timeSlots = [];
+  Widget _buildTimeSlotsGrid() {
     final now = DateTime.now();
-    final isToday = widget.selectedDay.year == now.year &&
-        widget.selectedDay.month == now.month &&
-        widget.selectedDay.day == now.day;
+    final isToday = DateUtils.isSameDay(widget.selectedDay, now);
+    final theme = Theme.of(context);
 
-    for (int hour = 7; hour < 19; hour++) {
-      for (int minute = 0; minute < 60; minute += 30) {
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        childAspectRatio: 2.5,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+      ),
+      itemCount: 24, // 12 hours * 2 slots per hour (7h to 19h)
+      itemBuilder: (context, index) {
+        final hour = 7 + (index ~/ 2);
+        final minute = (index % 2) * 30;
         final time = TimeOfDay(hour: hour, minute: minute);
+
+        final slotDateTime = DateTime(widget.selectedDay.year,
+            widget.selectedDay.month, widget.selectedDay.day, hour, minute);
+
         final isBooked = _isTimeSlotBooked(time);
+        final isPast = isToday && slotDateTime.isBefore(now);
+        final bool isEnabled = !isBooked && !isPast;
 
-        bool isPast = false;
-        if (isToday) {
-          final slotDateTime = DateTime(
-              widget.selectedDay.year, widget.selectedDay.month, widget.selectedDay.day, hour, minute);
-          if (slotDateTime.isBefore(now)) {
-            isPast = true;
-          }
-        }
-
-        timeSlots.add(
-          ElevatedButton(
-            onPressed: isBooked || isPast ? null : () => _showConfirmationDialog(time),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isBooked || isPast ? Colors.grey : null,
+        return ChoiceChip(
+          label: Text(
+            '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}',
+            style: TextStyle(
+              color: isEnabled
+                  ? theme.colorScheme.onPrimary
+                  : theme.colorScheme.onSurface.withOpacity(0.5),
+              fontWeight: FontWeight.bold,
             ),
-            child: Text('${time.hour}:${time.minute.toString().padLeft(2, '0')}'),
+          ),
+          selected: false, // We handle selection via onTap
+          onSelected: isEnabled ? (_) => _showConfirmationDialog(time) : null,
+          backgroundColor: isEnabled
+              ? theme.colorScheme.primary
+              : theme.colorScheme.surfaceVariant,
+          disabledColor: theme.colorScheme.surfaceVariant.withOpacity(0.5),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            side: BorderSide(
+              color: isEnabled
+                  ? theme.colorScheme.primary
+                  : Colors.transparent,
+            ),
           ),
         );
-      }
-    }
-    return GridView.count(
-      crossAxisCount: 4,
-      mainAxisSpacing: 8,
-      crossAxisSpacing: 8,
-      children: timeSlots,
+      },
     );
   }
 
   bool _isTimeSlotBooked(TimeOfDay time) {
     for (var appointment in widget.appointmentsForDay) {
       final appointmentTime = TimeOfDay.fromDateTime(appointment.dateTime);
-      if (appointmentTime.hour == time.hour && appointmentTime.minute == time.minute) {
+      if (appointmentTime.hour == time.hour &&
+          appointmentTime.minute == time.minute) {
         return true;
       }
     }
@@ -173,25 +191,53 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
 
   void _showConfirmationDialog(TimeOfDay time) {
     if (_selectedService == null) return;
+    final theme = Theme.of(context);
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
           title: const Text('Confirmer le rendez-vous'),
-          content: Text(
-            'Réserver pour "${_selectedService!.name}" le ${DateFormat.yMMMMd('fr_FR').format(widget.selectedDay)} à ${time.format(context)} pour une durée de $_duration minutes ?',
+          content: RichText(
+            text: TextSpan(
+              style: theme.textTheme.bodyMedium,
+              children: [
+                const TextSpan(text: 'Réserver pour le service '),
+                TextSpan(
+                  text: '"${_selectedService!.name}"',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const TextSpan(text: ' le '),
+                TextSpan(
+                  text: DateFormat.yMMMMd('fr_FR').format(widget.selectedDay),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const TextSpan(text: ' à '),
+                TextSpan(
+                  text: time.format(context),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const TextSpan(text: ' ?'),
+              ],
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: const Text('Annuler'),
             ),
-            TextButton(
+            ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 _bookAppointment(time);
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: theme.colorScheme.onPrimary,
+              ),
               child: const Text('Confirmer'),
             ),
           ],
@@ -204,7 +250,8 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     if (authProvider.userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vous devez être connecté pour réserver.')),
+        const SnackBar(
+            content: Text('Vous devez être connecté pour réserver.')),
       );
       return;
     }
@@ -223,20 +270,22 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
       artisanId: widget.artisanId,
       serviceId: _selectedService!.id,
       dateTime: appointmentDateTime,
-      duration: _duration,
+      duration: _selectedService!.defaultDuration,
       status: AppointmentStatus.pending,
       createdAt: DateTime.now(),
     );
 
     try {
-      final appointmentProvider = Provider.of<AppointmentProvider>(context, listen: false);
+      final appointmentProvider =
+          Provider.of<AppointmentProvider>(context, listen: false);
       await appointmentProvider.createAppointment(appointment);
 
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       final client = await userProvider.getUserById(authProvider.userId!);
       final clientName = client?.name ?? 'Un client';
 
-      final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
+      final notificationProvider =
+          Provider.of<NotificationProvider>(context, listen: false);
       await notificationProvider.notifyArtisanOfNewAppointment(
         artisanId: widget.artisanId,
         clientName: clientName,
@@ -246,7 +295,7 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Demande de rendez-vous envoyée.')),
       );
-      Navigator.of(context).popUntil((route) => route.isFirst);
+      Navigator.of(context).popUntil(ModalRoute.withName('/client-home'));
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur lors de la réservation: $e')),

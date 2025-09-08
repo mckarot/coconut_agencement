@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/appointment_model.dart';
 import '../providers/appointment_provider.dart';
@@ -7,7 +8,7 @@ import '../providers/user_provider.dart';
 import '../models/user_model.dart';
 
 class AppointmentHistoryScreen extends StatefulWidget {
-  final bool isArtisanView; // true pour l'artisan, false pour le client
+  final bool isArtisanView;
 
   const AppointmentHistoryScreen({super.key, required this.isArtisanView});
 
@@ -29,9 +30,8 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
   }
 
   Future<void> _loadAppointments() async {
-    setState(() {
-      _isLoading = true;
-    });
+    if (!mounted) return;
+    setState(() => _isLoading = true);
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final appointmentProvider =
@@ -42,29 +42,26 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
         throw Exception("Utilisateur non connecté.");
       }
 
-      // Charger les rendez-vous en fonction du rôle de l'utilisateur
       if (widget.isArtisanView) {
         await appointmentProvider.loadArtisanAppointments(authProvider.userId!);
       } else {
         await appointmentProvider.loadClientAppointments(authProvider.userId!);
       }
 
-      List<AppointmentModel> filteredAppointments = appointmentProvider.appointments;
+      List<AppointmentModel> filteredAppointments =
+          appointmentProvider.appointments;
 
-      // Appliquer le filtre par statut si nécessaire
       if (_filterStatus != null) {
         filteredAppointments = filteredAppointments
             .where((appointment) => appointment.status == _filterStatus)
             .toList();
       }
 
-      // Charger les détails des utilisateurs (clients pour les artisans, artisans pour les clients)
       Map<String, UserModel> userDetails = {};
       for (var appointment in filteredAppointments) {
         String userId = widget.isArtisanView
             ? appointment.clientId
             : appointment.artisanId;
-            
         if (!userDetails.containsKey(userId)) {
           final user = await userProvider.getUserById(userId);
           if (user != null) {
@@ -82,12 +79,10 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Erreur lors du chargement des rendez-vous: $e')),
+              content: Text('Erreur de chargement des rendez-vous: $e')),
         );
       }
     }
@@ -102,121 +97,165 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // Filtres par statut
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      FilterChip(
-                        label: const Text('Tous'),
-                        selected: _filterStatus == null,
-                        onSelected: (selected) =>
-                            _filterAppointments(null),
-                      ),
-                      const SizedBox(width: 8),
-                      FilterChip(
-                        label: const Text('Confirmés'),
-                        selected: _filterStatus == AppointmentStatus.confirmed,
-                        onSelected: (selected) => _filterAppointments(
-                            selected ? AppointmentStatus.confirmed : null),
-                      ),
-                      const SizedBox(width: 8),
-                      FilterChip(
-                        label: const Text('Refusés'),
-                        selected: _filterStatus == AppointmentStatus.rejected,
-                        onSelected: (selected) => _filterAppointments(
-                            selected ? AppointmentStatus.rejected : null),
-                      ),
-                      const SizedBox(width: 8),
-                      FilterChip(
-                        label: const Text('En attente'),
-                        selected: _filterStatus == AppointmentStatus.pending,
-                        onSelected: (selected) => _filterAppointments(
-                            selected ? AppointmentStatus.pending : null),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Liste des rendez-vous
+                _buildFilterChips(theme),
                 Expanded(
                   child: _appointments.isEmpty
-                      ? const Center(
-                          child: Text('Aucun rendez-vous trouvé'),
-                        )
-                      : ListView.builder(
-                          itemCount: _appointments.length,
-                          itemBuilder: (context, index) {
-                            final appointment = _appointments[index];
-                            final user = _userDetails[
-                                widget.isArtisanView
-                                    ? appointment.clientId
-                                    : appointment.artisanId];
-
-                            return Card(
-                              margin: const EdgeInsets.all(8.0),
-                              child: ListTile(
-                                title: Text(user?.name ??
-                                    user?.email ??
-                                    (widget.isArtisanView
-                                        ? 'Client inconnu'
-                                        : 'Artisan inconnu')),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '${appointment.dateTime.day}/${appointment.dateTime.month}/${appointment.dateTime.year} à ${appointment.dateTime.hour}:${appointment.dateTime.minute.toString().padLeft(2, '0')}',
-                                    ),
-                                    Text(
-                                      'Durée: ${appointment.duration} minutes',
-                                    ),
-                                  ],
-                                ),
-                                trailing: _buildStatusIndicator(
-                                    appointment.status),
-                              ),
-                            );
-                          },
-                        ),
+                      ? _buildEmptyState(theme)
+                      : _buildAppointmentsList(theme),
                 ),
               ],
             ),
     );
   }
 
-  Widget _buildStatusIndicator(AppointmentStatus status) {
+  Widget _buildFilterChips(ThemeData theme) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        children: [
+          _buildFilterChip(theme, 'Tous', null),
+          _buildFilterChip(
+              theme, 'Confirmés', AppointmentStatus.confirmed),
+          _buildFilterChip(theme, 'Refusés', AppointmentStatus.rejected),
+          _buildFilterChip(theme, 'En attente', AppointmentStatus.pending),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(
+      ThemeData theme, String label, AppointmentStatus? status) {
+    final isSelected = _filterStatus == status;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: FilterChip(
+        label: Text(label),
+        selected: isSelected,
+        onSelected: (selected) => _filterAppointments(status),
+        selectedColor: theme.colorScheme.primary,
+        labelStyle: TextStyle(
+          color: isSelected
+              ? theme.colorScheme.onPrimary
+              : theme.colorScheme.onSurface,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.0),
+          side: BorderSide(
+            color: isSelected
+                ? theme.colorScheme.primary
+                : theme.colorScheme.outline,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAppointmentsList(ThemeData theme) {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      itemCount: _appointments.length,
+      itemBuilder: (context, index) {
+        final appointment = _appointments[index];
+        final user = _userDetails[
+            widget.isArtisanView ? appointment.clientId : appointment.artisanId];
+
+        return Card(
+          elevation: 2.0,
+          margin: const EdgeInsets.symmetric(vertical: 8.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.all(16.0),
+            leading: CircleAvatar(
+              backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+              child: Icon(
+                Icons.calendar_today,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+            title: Text(
+              user?.name ?? user?.email ?? 'Utilisateur inconnu',
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 4),
+                Text(
+                  DateFormat.yMMMMd('fr_FR').add_Hm().format(appointment.dateTime),
+                ),
+                Text('Durée: ${appointment.duration} minutes'),
+              ],
+            ),
+            trailing: _buildStatusIndicator(appointment.status, theme),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyState(ThemeData theme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.event_busy,
+            size: 64,
+            color: theme.colorScheme.secondary,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Aucun rendez-vous trouvé',
+            style: theme.textTheme.titleMedium,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusIndicator(AppointmentStatus status, ThemeData theme) {
     Color color;
     String text;
+    IconData icon;
 
     switch (status) {
       case AppointmentStatus.confirmed:
         color = Colors.green;
         text = 'Confirmé';
+        icon = Icons.check_circle;
         break;
       case AppointmentStatus.rejected:
         color = Colors.red;
         text = 'Refusé';
+        icon = Icons.cancel;
         break;
       default:
         color = Colors.orange;
         text = 'En attente';
+        icon = Icons.hourglass_top;
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(color: Colors.white, fontSize: 12.0),
-      ),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(height: 4),
+        Text(
+          text,
+          style: TextStyle(color: color, fontSize: 12.0),
+        ),
+      ],
     );
   }
 }

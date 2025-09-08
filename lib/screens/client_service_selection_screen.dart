@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/service_model.dart';
 import '../providers/service_provider.dart';
-import '../providers/auth_provider.dart';
 import 'availability_screen.dart';
 
 class ClientServiceSelectionScreen extends StatefulWidget {
@@ -32,15 +31,17 @@ class _ClientServiceSelectionScreenState
       final serviceProvider =
           Provider.of<ServiceProvider>(context, listen: false);
       await serviceProvider.loadServices();
-      setState(() {
-        _services = serviceProvider.services;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
       if (mounted) {
+        setState(() {
+          _services = serviceProvider.services;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erreur lors du chargement des services: $e')),
         );
@@ -48,80 +49,124 @@ class _ClientServiceSelectionScreenState
     }
   }
 
+  void _navigateToAvailability() {
+    if (_selectedService != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AvailabilityScreen(
+            artisanId: widget.artisanId,
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sélectionner un service'),
+        title: const Text('Nos Prestations'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: theme.colorScheme.onSurface,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Choisissez un service :',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16.0),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: _services.length,
-                      itemBuilder: (context, index) {
-                        final service = _services[index];
-                        return Card(
-                          margin: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: ListTile(
-                            title: Text(service.name),
-                            subtitle: Text(service.description),
-                            trailing:
-                                Text('${service.defaultDuration} minutes'),
-                            onTap: () {
-                              setState(() {
-                                _selectedService = service;
-                              });
-                              // Naviguer vers l'écran de disponibilité
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => AvailabilityScreen(
-                                    artisanId: widget.artisanId,
-                                  ),
-                                ),
-                              );
-                            },
-                            selected: _selectedService?.id == service.id,
-                            selectedTileColor: Theme.of(context)
-                                .colorScheme
-                                .primary
-                                .withOpacity(0.1),
-                          ),
-                        );
-                      },
+      extendBodyBehindAppBar: true,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              theme.colorScheme.surface,
+              theme.colorScheme.surface.withOpacity(0.9),
+            ],
+          ),
+        ),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24.0, 16.0, 24.0, 8.0),
+                      child: Text(
+                        'Choisissez un service',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
                     ),
-                  ),
-                  if (_selectedService != null) ...[
-                    const SizedBox(height: 16.0),
-                    ElevatedButton(
-                      onPressed: () {
-                        // Naviguer vers l'écran de disponibilité
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AvailabilityScreen(
-                              artisanId: widget.artisanId,
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        itemCount: _services.length,
+                        itemBuilder: (context, index) {
+                          final service = _services[index];
+                          final isSelected = _selectedService?.id == service.id;
+                          return Card(
+                            elevation: isSelected ? 8.0 : 2.0,
+                            margin: const EdgeInsets.symmetric(vertical: 8.0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                              side: BorderSide(
+                                color: isSelected
+                                    ? theme.colorScheme.primary
+                                    : Colors.transparent,
+                                width: 2,
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                      child: const Text('Voir les disponibilités'),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.all(16.0),
+                              title: Text(
+                                service.name,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: Text(service.description),
+                              ),
+                              trailing: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  const Icon(Icons.timer_outlined, size: 20),
+                                  const SizedBox(height: 4),
+                                  Text('${service.defaultDuration} min'),
+                                ],
+                              ),
+                              onTap: () {
+                                setState(() {
+                                  _selectedService = service;
+                                });
+                              },
+                              selected: isSelected,
+                              selectedTileColor:
+                                  theme.colorScheme.primary.withOpacity(0.08),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ],
-                ],
+                ),
               ),
-            ),
+      ),
+      floatingActionButton: _selectedService != null
+          ? FloatingActionButton.extended(
+              onPressed: _navigateToAvailability,
+              label: const Text('Voir les disponibilités'),
+              icon: const Icon(Icons.arrow_forward),
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: theme.colorScheme.onPrimary,
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }

@@ -60,13 +60,13 @@ class _BookingScreenState extends State<BookingScreen> {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Theme.of(context).colorScheme.primary.withOpacity(0.1),
-              Theme.of(context).colorScheme.secondary.withOpacity(0.1),
-            ],
+          image: DecorationImage(
+            image: const AssetImage('assets/images/logo.png'),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              Colors.black.withOpacity(0.3),
+              BlendMode.darken,
+            ),
           ),
         ),
         child: Center(
@@ -91,10 +91,15 @@ class _BookingScreenState extends State<BookingScreen> {
                           ),
                     ),
                     const SizedBox(height: 16.0),
-                    Text(
-                      'Nous sommes prêts à vous accueillir. Prenez rendez-vous en quelques clics.',
+                    RichText(
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      text: TextSpan(
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        children: const <TextSpan>[
+                          TextSpan(text: 'Spécialiste en Pose de cuisine\nMontade de meubles\nAgencement d\'intérieur \n'),
+                          TextSpan(text: 'Prenez rendez-vous en quelques clics.', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 32.0),
                     _isLoading
@@ -102,7 +107,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         : ElevatedButton.icon(
                             onPressed: _startBookingFlow,
                             icon: const Icon(Icons.calendar_today),
-                            label: const Text('Prendre un rendez-vous'),
+                            label: const Text('Prendre un\nrendez-vous'),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                               textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
