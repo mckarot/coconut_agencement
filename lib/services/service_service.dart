@@ -6,12 +6,11 @@ class ServiceService {
   final String _collection = 'services';
 
   // Récupérer tous les services
-  Stream<List<ServiceModel>> getServices() {
-    return _firestore.collection(_collection).snapshots().map((snapshot) {
-      return snapshot.docs
-          .map((doc) => ServiceModel.fromMap(doc.data(), doc.id))
-          .toList();
-    });
+  Future<List<ServiceModel>> getServices() async {
+    final snapshot = await _firestore.collection(_collection).get();
+    return snapshot.docs
+        .map((doc) => ServiceModel.fromMap(doc.data(), doc.id))
+        .toList();
   }
 
   // Récupérer un service par ID

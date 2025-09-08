@@ -16,15 +16,12 @@ class ServiceProvider with ChangeNotifier {
     Future.microtask(() => notifyListeners());
 
     try {
-      _serviceService.getServices().listen((services) {
-        _services = services;
-        _isLoading = false;
-        notifyListeners();
-      });
+      _services = await _serviceService.getServices();
     } catch (e) {
+      throw Exception('Erreur lors du chargement des services: $e');
+    } finally {
       _isLoading = false;
       notifyListeners();
-      throw Exception('Erreur lors du chargement des services: $e');
     }
   }
 

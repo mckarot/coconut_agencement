@@ -3,14 +3,14 @@ import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import 'client_service_selection_screen.dart';
 
-class ArtisanListScreen extends StatefulWidget {
-  const ArtisanListScreen({super.key});
+class BookingScreen extends StatefulWidget {
+  const BookingScreen({super.key});
 
   @override
-  State<ArtisanListScreen> createState() => _ArtisanListScreenState();
+  State<BookingScreen> createState() => _BookingScreenState();
 }
 
-class _ArtisanListScreenState extends State<ArtisanListScreen> {
+class _BookingScreenState extends State<BookingScreen> {
   bool _isLoading = false;
 
   Future<void> _startBookingFlow() async {

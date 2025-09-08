@@ -4,14 +4,14 @@ import '../providers/auth_provider.dart';
 import '../providers/user_provider.dart';
 import '../models/user_model.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+class RegisterScreenDebut extends StatefulWidget {
+  const RegisterScreenDebut({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<RegisterScreenDebut> createState() => _RegisterScreenDebutState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenDebutState extends State<RegisterScreenDebut> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -215,32 +215,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         keyboardType: TextInputType.phone,
                       ),
                       const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text('Client'),
-                          Radio<UserRole>(
-                            value: UserRole.client,
-                            groupValue: _selectedRole,
-                            onChanged: (UserRole? value) {
-                              setState(() {
-                                _selectedRole = value!;
-                              });
-                            },
-                          ),
-                          const SizedBox(width: 24),
-                          const Text('Artisan'),
-                          Radio<UserRole>(
-                            value: UserRole.artisan,
-                            groupValue: _selectedRole,
-                            onChanged: (UserRole? value) {
-                              setState(() {
-                                _selectedRole = value!;
-                              });
-                            },
-                          ),
-                        ],
-                      ),
                       if (_errorMessage != null) ...[
                         const SizedBox(height: 16),
                         Text(

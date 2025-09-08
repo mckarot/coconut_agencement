@@ -1,4 +1,4 @@
-import 'package:coconut_agencement/models/user_model.dart';
+import 'package:coconut_agencement/screens/register_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -47,6 +47,15 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text(_artisanTitles[_selectedIndex]),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.person_add),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const RegisterScreen()),
+              );
+            },
+          ),
           IconButton(
             onPressed: () async {
               await authProvider.signOut();

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'appointment_history_screen.dart';
-import 'artisan_list_screen.dart';
+import 'booking_screen.dart';
 import 'welcome_screen.dart';
 
 class ClientHomeScreen extends StatefulWidget {
@@ -19,11 +19,12 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
   static const List<Widget> _clientScreens = [
     Center(
       child: Text(
-        'Bienvenue sur Coconut Agencement',
+        ''
+        ,
         style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
       ),
     ),
-    ArtisanListScreen(),
+    BookingScreen(),
     AppointmentHistoryScreen(isArtisanView: false),
   ];
 
@@ -60,7 +61,15 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
           ),
         ],
       ),
-      body: _clientScreens[_selectedIndex],
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/logo.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: _clientScreens[_selectedIndex],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
