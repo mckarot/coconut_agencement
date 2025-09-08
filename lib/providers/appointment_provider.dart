@@ -58,6 +58,15 @@ class AppointmentProvider with ChangeNotifier {
     }
   }
 
+  // Récupérer les rendez-vous d'un artisan sans modifier l'état
+  Future<List<AppointmentModel>> getArtisanAppointments(String artisanId) async {
+    try {
+      return await _appointmentService.getArtisanAppointments(artisanId);
+    } catch (e) {
+      throw Exception('Erreur lors de la récupération des rendez-vous de l\'artisan: $e');
+    }
+  }
+
   // Récupérer un rendez-vous par ID
   Future<AppointmentModel?> getAppointmentById(String appointmentId) async {
     try {

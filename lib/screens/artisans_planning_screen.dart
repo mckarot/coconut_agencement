@@ -1,11 +1,15 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz_data;
+
+import '../models/appointment_model.dart';
 import '../models/user_model.dart';
 import '../providers/appointment_provider.dart';
 import '../providers/auth_provider.dart';
-import '../models/appointment_model.dart';
 import '../providers/user_provider.dart';
 
 class ArtisanPlanningScreen extends StatefulWidget {
@@ -19,57 +23,117 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
   Map<String, UserModel> _clientDetails = {};
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  List<AppointmentModel> _selectedAppointments = [];
+  Timer? _timer;
+  DateTime _now = DateTime.now();
+  bool _isLoading = true;
+  String? _errorMessage;
+  Map<DateTime, List<AppointmentModel>> _appointmentsByDay = {};
+  tz.Location? _location;
 
   @override
   void initState() {
     super.initState();
-    _selectedDay = _focusedDay;
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      if (authProvider.userId != null) {
-        final appointmentProvider = Provider.of<AppointmentProvider>(context, listen: false);
-        await appointmentProvider.loadArtisanAppointments(authProvider.userId!);
-        await _loadClientDetails();
-        if (mounted) {
-          setState(() {
-            _selectedAppointments = _getAppointmentsForDay(_selectedDay!);
-          });
-        }
+    _initializeTimezoneAndLoadData();
+    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          _now = DateTime.now();
+        });
       }
     });
   }
 
-  Future<void> _loadClientDetails() async {
-    if (!mounted) return;
-    final appointmentProvider = Provider.of<AppointmentProvider>(context, listen: false);
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    Map<String, UserModel> clientDetails = {};
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
-    for (var appointment in appointmentProvider.appointments) {
-      if (!clientDetails.containsKey(appointment.clientId)) {
-        final client = await userProvider.getUserById(appointment.clientId);
-        if (client != null) {
-          clientDetails[appointment.clientId] = client;
-        }
+  Future<void> _initializeTimezoneAndLoadData() async {
+    try {
+      tz_data.initializeTimeZones();
+      _location = tz.getLocation('America/Martinique');
+      final nowInLocation = tz.TZDateTime.from(DateTime.now(), _location!);
+      _focusedDay = nowInLocation;
+      _selectedDay = nowInLocation;
+      await _loadArtisanAppointments();
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = "Erreur d'initialisation: ${e.toString()}";
+          _isLoading = false;
+        });
       }
-    }
-    if (mounted) {
-      setState(() {
-        _clientDetails = clientDetails;
-      });
     }
   }
 
+  Future<void> _loadArtisanAppointments() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final artisanId = authProvider.userId;
+
+    if (artisanId == null) {
+      setState(() {
+        _errorMessage = "Artisan non connecté.";
+        _isLoading = false;
+      });
+      return;
+    }
+
+    try {
+      final appointmentProvider = Provider.of<AppointmentProvider>(context, listen: false);
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+      final appointments = await appointmentProvider.getArtisanAppointments(artisanId);
+
+      final clientDetails = <String, UserModel>{};
+      for (var appointment in appointments) {
+        if (!clientDetails.containsKey(appointment.clientId)) {
+          final client = await userProvider.getUserById(appointment.clientId);
+          if (client != null) {
+            clientDetails[appointment.clientId] = client;
+          }
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _clientDetails = clientDetails;
+          _groupAppointments(appointments);
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = "Erreur de chargement des rendez-vous: ${e.toString()}";
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _groupAppointments(List<AppointmentModel> appointments) {
+    final groupedAppointments = <DateTime, List<AppointmentModel>>{};
+    for (var appointment in appointments) {
+      final appointmentDate = tz.TZDateTime.from(appointment.dateTime, _location!);
+      final dateKey = DateTime.utc(appointmentDate.year, appointmentDate.month, appointmentDate.day);
+      if (groupedAppointments[dateKey] == null) {
+        groupedAppointments[dateKey] = [];
+      }
+      groupedAppointments[dateKey]!.add(appointment);
+    }
+    _appointmentsByDay = groupedAppointments;
+  }
+
   List<AppointmentModel> _getAppointmentsForDay(DateTime day) {
-    final appointmentProvider = Provider.of<AppointmentProvider>(context, listen: false);
-    final localDay = day.toLocal();
-    return appointmentProvider.appointments.where((appointment) {
-      final appointmentDate = appointment.dateTime;
-      return appointmentDate.year == localDay.year &&
-          appointmentDate.month == localDay.month &&
-          appointmentDate.day == localDay.day;
-    }).toList();
+    final dateKey = DateTime.utc(day.year, day.month, day.day);
+    return _appointmentsByDay[dateKey] ?? [];
   }
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
@@ -77,119 +141,172 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
       setState(() {
         _selectedDay = selectedDay;
         _focusedDay = focusedDay;
-        _selectedAppointments = _getAppointmentsForDay(selectedDay);
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Consumer<AppointmentProvider>(
-        builder: (context, appointmentProvider, child) {
-          if (appointmentProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    final selectedAppointments = _getAppointmentsForDay(_selectedDay ?? _focusedDay);
 
-          return Column(
-            children: [
-              TableCalendar<AppointmentModel>(
-                locale: 'fr_FR',
-                firstDay: DateTime.utc(2020, 1, 1),
-                lastDay: DateTime.utc(2030, 12, 31),
-                focusedDay: _focusedDay,
-                selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                onDaySelected: _onDaySelected,
-                eventLoader: _getAppointmentsForDay,
-                calendarStyle: const CalendarStyle(
-                  todayDecoration: BoxDecoration(
-                    color: Colors.blueAccent,
-                    shape: BoxShape.circle,
-                  ),
-                  selectedDecoration: BoxDecoration(
-                    color: Colors.orangeAccent,
-                    shape: BoxShape.circle,
-                  ),
+    return Scaffold(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _errorMessage != null
+              ? Center(child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)))
+              : Column(
+                  children: [
+                    TableCalendar<AppointmentModel>(
+                      locale: 'fr_FR',
+                      firstDay: DateTime.utc(2020, 1, 1),
+                      lastDay: DateTime.utc(2030, 12, 31),
+                      focusedDay: _focusedDay,
+                      selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                      onDaySelected: _onDaySelected,
+                      eventLoader: _getAppointmentsForDay,
+                      calendarStyle: const CalendarStyle(
+                        todayDecoration: BoxDecoration(color: Colors.blueAccent, shape: BoxShape.circle),
+                        selectedDecoration: BoxDecoration(color: Colors.orangeAccent, shape: BoxShape.circle),
+                      ),
+                      headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
+                    ),
+                    const SizedBox(height: 8.0),
+                    Expanded(
+                      child: _buildTimeline(selectedAppointments),
+                    ),
+                  ],
                 ),
-                headerStyle: const HeaderStyle(
-                  formatButtonVisible: false,
-                  titleCentered: true,
-                ),
-              ),
-              const SizedBox(height: 8.0),
-              Expanded(
-                child: _buildAppointmentList(),
-              ),
-            ],
-          );
-        },
+    );
+  }
+
+  Widget _buildTimeline(List<AppointmentModel> appointments) {
+    if (appointments.isEmpty) {
+      return const Center(child: Text('Aucun rendez-vous pour ce jour.'));
+    }
+
+    appointments.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+
+    const double hourHeight = 80.0;
+    const int startHour = 7;
+    const int endHour = 21;
+    final double timelineHeight = (endHour - startHour + 1) * hourHeight;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: SizedBox(
+        height: timelineHeight,
+        child: Stack(
+          children: [
+            CustomPaint(
+              size: Size(double.infinity, timelineHeight),
+              painter: TimelinePainter(
+                  hourHeight: hourHeight,
+                  startHour: startHour,
+                  endHour: endHour),
+            ),
+            ..._buildHourLabels(hourHeight, startHour, endHour),
+            ..._buildAppointmentItems(appointments, hourHeight, startHour),
+            if (isSameDay(_selectedDay, _now))
+              _buildCurrentTimeIndicator(hourHeight, startHour),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildAppointmentList() {
-    if (_selectedAppointments.isEmpty) {
-      return const Center(
-        child: Text('Aucun rendez-vous pour ce jour.'),
+  List<Widget> _buildHourLabels(double hourHeight, int startHour, int endHour) {
+    List<Widget> labels = [];
+    for (int i = startHour; i <= endHour; i++) {
+      final y = (i - startHour) * hourHeight;
+      labels.add(
+        Positioned(
+          top: y - 8, // Center text vertically on the line
+          left: 0,
+          child: SizedBox(
+            width: 50,
+            child: Text(
+              '${i.toString().padLeft(2, '0')}:00',
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+              textAlign: TextAlign.right,
+            ),
+          ),
+        ),
       );
     }
+    return labels;
+  }
 
-    _selectedAppointments.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+  List<Widget> _buildAppointmentItems(List<AppointmentModel> appointments, double hourHeight, int startHour) {
+    return appointments.map((appointment) {
+      final localDateTime = tz.TZDateTime.from(appointment.dateTime, _location!);
+      final double top = ((localDateTime.hour - startHour) * hourHeight) + (localDateTime.minute / 60.0 * hourHeight);
+      final double height = (appointment.duration / 60.0) * hourHeight;
+      final client = _clientDetails[appointment.clientId];
 
-    return ListView.builder(
-      itemCount: _selectedAppointments.length,
-      itemBuilder: (context, index) {
-        final appointment = _selectedAppointments[index];
-        final client = _clientDetails[appointment.clientId];
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: ListTile(
-            title: Text(client?.name ?? client?.email ?? 'Client inconnu'),
-            subtitle: Text(
-              DateFormat.Hm('fr_FR').format(appointment.dateTime),
+      return Positioned(
+        top: top,
+        left: 70.0,
+        right: 0,
+        height: height,
+        child: GestureDetector(
+          onTap: () => _showAppointmentDetails(appointment),
+          child: Card(
+            color: Theme.of(context).primaryColor.withOpacity(0.8),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    client?.name ?? client?.email ?? 'Client inconnu',
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${DateFormat.Hm('fr_FR').format(localDateTime)} - ${DateFormat.Hm('fr_FR').format(localDateTime.add(Duration(minutes: appointment.duration)))}',
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                ],
+              ),
             ),
-            trailing: _buildStatusIndicator(appointment.status),
-            onTap: () => _showAppointmentDetails(appointment),
           ),
-        );
-      },
-    );
+        ),
+      );
+    }).toList();
   }
 
-  Widget _buildStatusIndicator(AppointmentStatus status) {
-    Color color;
-    String text;
-    
-    switch (status) {
-      case AppointmentStatus.confirmed:
-        color = Colors.green;
-        text = 'Confirmé';
-        break;
-      case AppointmentStatus.rejected:
-        color = Colors.red;
-        text = 'Rejeté';
-        break;
-      default:
-        color = Colors.orange;
-        text = 'En attente';
+  Widget _buildCurrentTimeIndicator(double hourHeight, int startHour) {
+    final now = tz.TZDateTime.from(_now, _location!);
+    final double minutesFromStart = (now.hour - startHour) * 60.0 + now.minute;
+    final double top = minutesFromStart / 60.0 * hourHeight;
+
+    if (top < 0 || top > (21 - startHour + 1) * hourHeight) {
+      return const SizedBox.shrink();
     }
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(color: Colors.white, fontSize: 12.0),
+
+    return Positioned(
+      top: top,
+      left: 60,
+      right: 0,
+      child: Row(
+        children: [
+          Container(
+            width: 10,
+            height: 10,
+            decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+          ),
+          Expanded(
+            child: Container(height: 2, color: Colors.red),
+          ),
+        ],
       ),
     );
   }
 
-  void _showAppointmentDetails(AppointmentModel appointment) async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final client = await userProvider.getUserById(appointment.clientId);
+  void _showAppointmentDetails(AppointmentModel appointment) {
+    final client = _clientDetails[appointment.clientId];
+    final localDateTime = tz.TZDateTime.from(appointment.dateTime, _location!);
 
     showModalBottomSheet(
       context: context,
@@ -200,16 +317,13 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Détails du rendez-vous',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
+              const Text('Détails du rendez-vous', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16.0),
               Text('Client: ${client?.name ?? 'Non trouvé'}'),
               Text('Email: ${client?.email ?? 'Non trouvé'}'),
               const Divider(height: 20),
-              Text('Date: ${DateFormat.yMMMMd('fr_FR').format(appointment.dateTime)}'),
-              Text('Heure: ${DateFormat.Hm('fr_FR').format(appointment.dateTime)}'),
+              Text('Date: ${DateFormat.yMMMMd('fr_FR').format(localDateTime)}'),
+              Text('Heure: ${DateFormat.Hm('fr_FR').format(localDateTime)}'),
               Text('Durée: ${appointment.duration} minutes'),
               Text('Statut: ${appointment.status.toString().split('.').last}'),
               const SizedBox(height: 16.0),
@@ -238,33 +352,16 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
 
   Future<void> _updateAppointmentStatus(AppointmentModel appointment, AppointmentStatus status) async {
     try {
-      final appointmentProvider =
-          Provider.of<AppointmentProvider>(context, listen: false);
-      
-      final updatedAppointment = AppointmentModel(
-        id: appointment.id,
-        clientId: appointment.clientId,
-        artisanId: appointment.artisanId,
-        serviceId: appointment.serviceId,
-        dateTime: appointment.dateTime,
-        duration: appointment.duration,
-        status: status,
-        createdAt: appointment.createdAt,
-        updatedAt: DateTime.now(),
-      );
-
-      await appointmentProvider.updateAppointment(
-          appointment.id, updatedAppointment);
+      final appointmentProvider = Provider.of<AppointmentProvider>(context, listen: false);
+      final updatedAppointment = appointment.copyWith(status: status, updatedAt: DateTime.now());
+      await appointmentProvider.updateAppointment(appointment.id, updatedAppointment);
 
       if (mounted) {
         Navigator.pop(context);
-        String statusText = status == AppointmentStatus.confirmed
-            ? 'confirmé'
-            : 'rejeté';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Rendez-vous $statusText avec succès')),
+          SnackBar(content: Text('Rendez-vous ${status == AppointmentStatus.confirmed ? 'confirmé' : 'rejeté'}')),
         );
+        _loadArtisanAppointments(); // Refresh the list
       }
     } catch (e) {
       if (mounted) {
@@ -274,5 +371,53 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
         );
       }
     }
+  }
+}
+
+class TimelinePainter extends CustomPainter {
+  final double hourHeight;
+  final int startHour;
+  final int endHour;
+
+  TimelinePainter({
+    required this.hourHeight,
+    required this.startHour,
+    required this.endHour,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final linePaint = Paint()
+      ..color = Colors.grey.shade300
+      ..strokeWidth = 1.0;
+
+    for (int i = startHour; i <= endHour; i++) {
+      final y = (i - startHour) * hourHeight;
+      canvas.drawLine(Offset(60, y), Offset(size.width, y), linePaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
+  }
+}
+
+extension AppointmentModelCopy on AppointmentModel {
+  AppointmentModel copyWith({
+    AppointmentStatus? status,
+    DateTime? updatedAt,
+  }) {
+    return AppointmentModel(
+      id: id,
+      clientId: clientId,
+      artisanId: artisanId,
+      serviceId: serviceId,
+      dateTime: dateTime,
+      duration: duration,
+      status: status ?? this.status,
+      createdAt: createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
 }
