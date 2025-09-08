@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/appointment_model.dart';
 import '../providers/appointment_provider.dart';
@@ -27,21 +28,24 @@ class _PendingAppointmentsScreenState extends State<PendingAppointmentsScreen> {
   }
 
   Future<void> _loadPendingAppointments() async {
+    if (!mounted) return;
+    setState(() => _isLoading = true);
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final appointmentProvider =
           Provider.of<AppointmentProvider>(context, listen: false);
       final userProvider = Provider.of<UserProvider>(context, listen: false);
 
-      // Charger les rendez-vous en attente de l'artisan
+      if (authProvider.userId == null) {
+        throw Exception("Utilisateur non connecté.");
+      }
+
       await appointmentProvider.loadArtisanAppointments(authProvider.userId!);
 
-      // Filtrer les rendez-vous en attente
       final pendingAppointments = appointmentProvider.appointments
           .where((appointment) => appointment.status == AppointmentStatus.pending)
           .toList();
 
-      // Charger les détails des clients
       Map<String, UserModel> clientDetails = {};
       for (var appointment in pendingAppointments) {
         if (!clientDetails.containsKey(appointment.clientId)) {
@@ -61,11 +65,7 @@ class _PendingAppointmentsScreenState extends State<PendingAppointmentsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-      if (mounted) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text('Erreur lors du chargement des rendez-vous: $e')),
@@ -80,50 +80,35 @@ class _PendingAppointmentsScreenState extends State<PendingAppointmentsScreen> {
       final appointmentProvider =
           Provider.of<AppointmentProvider>(context, listen: false);
       final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
+      final notificationProvider =
+          Provider.of<NotificationProvider>(context, listen: false);
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-      // Créer un objet AppointmentModel mis à jour
-      final updatedAppointment = AppointmentModel(
-        id: appointment.id,
-        clientId: appointment.clientId,
-        artisanId: appointment.artisanId,
-        serviceId: appointment.serviceId,
-        dateTime: appointment.dateTime,
-        duration: appointment.duration,
+      final updatedAppointment = appointment.copyWith(
         status: status,
-        createdAt: appointment.createdAt,
         updatedAt: DateTime.now(),
       );
 
-      // Mettre à jour le rendez-vous
       await appointmentProvider.updateAppointment(
           appointment.id, updatedAppointment);
 
-      // Envoyer une notification au client
       final artisan = await userProvider.getUserById(authProvider.userId!);
       final artisanName = artisan?.name ?? artisan?.email ?? 'Artisan';
-      
-      final client = _clientDetails[appointment.clientId];
-      if (client != null) {
-        await notificationProvider.notifyClientOfAppointmentStatus(
-          clientId: appointment.clientId,
-          artisanName: artisanName,
-          appointmentDate: appointment.dateTime,
-          isConfirmed: status == AppointmentStatus.confirmed,
-        );
-      }
 
-      // Rafraîchir la liste
+      await notificationProvider.notifyClientOfAppointmentStatus(
+        clientId: appointment.clientId,
+        artisanName: artisanName,
+        appointmentDate: appointment.dateTime,
+        isConfirmed: status == AppointmentStatus.confirmed,
+      );
+
       await _loadPendingAppointments();
 
       if (mounted) {
-        String statusText = status == AppointmentStatus.confirmed
-            ? 'confirmé'
-            : 'rejeté';
+        String statusText =
+            status == AppointmentStatus.confirmed ? 'confirmé' : 'rejeté';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Rendez-vous $statusText avec succès')),
+          SnackBar(content: Text('Rendez-vous $statusText avec succès')),
         );
       }
     } catch (e) {
@@ -137,47 +122,141 @@ class _PendingAppointmentsScreenState extends State<PendingAppointmentsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _pendingAppointments.isEmpty
-              ? const Center(
-                  child: Text('Aucune demande de rendez-vous en attente'),
-                )
-              : ListView.builder(
-                  itemCount: _pendingAppointments.length,
-                  itemBuilder: (context, index) {
-                    final appointment = _pendingAppointments[index];
-                    final client = _clientDetails[appointment.clientId];
+              ? _buildEmptyState(theme)
+              : _buildAppointmentsList(theme),
+    );
+  }
 
-                    return Card(
-                      key: ValueKey(appointment.id),
-                      margin: const EdgeInsets.all(8.0),
-                      child: ListTile(
-                        title: Text(
-                            client?.name ?? client?.email ?? 'Client inconnu'),
-                        subtitle: Text(
-                          '${appointment.dateTime.day}/${appointment.dateTime.month}/${appointment.dateTime.year} à ${appointment.dateTime.hour}:${appointment.dateTime.minute.toString().padLeft(2, '0')}Durée: ${appointment.duration} minutes',
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.check, color: Colors.green),
-                              onPressed: () => _updateAppointmentStatus(
-                                  appointment, AppointmentStatus.confirmed),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.close, color: Colors.red),
-                              onPressed: () => _updateAppointmentStatus(
-                                  appointment, AppointmentStatus.rejected),
-                            ),
-                          ],
-                        ),
+  Widget _buildAppointmentsList(ThemeData theme) {
+    return RefreshIndicator(
+      onRefresh: _loadPendingAppointments,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16.0),
+        itemCount: _pendingAppointments.length,
+        itemBuilder: (context, index) {
+          final appointment = _pendingAppointments[index];
+          final client = _clientDetails[appointment.clientId];
+
+          return Card(
+            elevation: 4.0,
+            margin: const EdgeInsets.symmetric(vertical: 8.0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    client?.name ?? client?.email ?? 'Client inconnu',
+                    style: theme.textTheme.titleLarge
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  _buildInfoRow(
+                      theme,
+                      Icons.calendar_today,
+                      DateFormat.yMMMMd('fr_FR')
+                          .add_Hm()
+                          .format(appointment.dateTime)),
+                  const SizedBox(height: 8),
+                  _buildInfoRow(theme, Icons.timer_outlined,
+                      '${appointment.duration} minutes'),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton.icon(
+                        icon: const Icon(Icons.close, color: Colors.red),
+                        label: const Text('Rejeter',
+                            style: TextStyle(color: Colors.red)),
+                        onPressed: () => _updateAppointmentStatus(
+                            appointment, AppointmentStatus.rejected),
                       ),
-                    );
-                  },
-                ),
+                      const SizedBox(width: 8),
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.check),
+                        label: const Text('Confirmer'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () => _updateAppointmentStatus(
+                            appointment, AppointmentStatus.confirmed),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(ThemeData theme, IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: theme.colorScheme.secondary),
+        const SizedBox(width: 8),
+        Text(text, style: theme.textTheme.bodyMedium),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState(ThemeData theme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.playlist_add_check,
+            size: 80,
+            color: theme.colorScheme.secondary,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Aucune demande en attente',
+            style: theme.textTheme.headlineSmall,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Les nouvelles demandes de rendez-vous apparaîtront ici.',
+            style: theme.textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+extension AppointmentModelCopy on AppointmentModel {
+  AppointmentModel copyWith({
+    AppointmentStatus? status,
+    DateTime? updatedAt,
+  }) {
+    return AppointmentModel(
+      id: id,
+      clientId: clientId,
+      artisanId: artisanId,
+      serviceId: serviceId,
+      dateTime: dateTime,
+      duration: duration,
+      status: status ?? this.status,
+      createdAt: createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }
