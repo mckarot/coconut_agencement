@@ -50,6 +50,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Color.fromARGB(33 , 106, 55, 47)),
         useMaterial3: true,
       ),
+      debugShowCheckedModeBanner: false,
       home: const WelcomeScreen(),
       routes: {
         '/home': (context) => const HomeScreen(),

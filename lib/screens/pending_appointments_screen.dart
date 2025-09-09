@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/appointment_model.dart';
+import '../models/service_model.dart';
 import '../providers/appointment_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/service_provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/notification_provider.dart';
 import '../models/user_model.dart';
@@ -19,6 +21,7 @@ class PendingAppointmentsScreen extends StatefulWidget {
 class _PendingAppointmentsScreenState extends State<PendingAppointmentsScreen> {
   List<AppointmentModel> _pendingAppointments = [];
   Map<String, UserModel> _clientDetails = {};
+  Map<String, ServiceModel> _serviceDetails = {};
   bool _isLoading = true;
 
   @override
@@ -35,6 +38,8 @@ class _PendingAppointmentsScreenState extends State<PendingAppointmentsScreen> {
       final appointmentProvider =
           Provider.of<AppointmentProvider>(context, listen: false);
       final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final serviceProvider =
+          Provider.of<ServiceProvider>(context, listen: false);
 
       if (authProvider.userId == null) {
         throw Exception("Utilisateur non connecté.");
@@ -47,11 +52,19 @@ class _PendingAppointmentsScreenState extends State<PendingAppointmentsScreen> {
           .toList();
 
       Map<String, UserModel> clientDetails = {};
+      Map<String, ServiceModel> serviceDetails = {};
       for (var appointment in pendingAppointments) {
         if (!clientDetails.containsKey(appointment.clientId)) {
           final client = await userProvider.getUserById(appointment.clientId);
           if (client != null) {
             clientDetails[appointment.clientId] = client;
+          }
+        }
+        if (!serviceDetails.containsKey(appointment.serviceId)) {
+          final service =
+              await serviceProvider.getServiceById(appointment.serviceId);
+          if (service != null) {
+            serviceDetails[appointment.serviceId] = service;
           }
         }
       }
@@ -60,6 +73,7 @@ class _PendingAppointmentsScreenState extends State<PendingAppointmentsScreen> {
         setState(() {
           _pendingAppointments = pendingAppointments;
           _clientDetails = clientDetails;
+          _serviceDetails = serviceDetails;
           _isLoading = false;
         });
       }
@@ -142,6 +156,7 @@ class _PendingAppointmentsScreenState extends State<PendingAppointmentsScreen> {
         itemBuilder: (context, index) {
           final appointment = _pendingAppointments[index];
           final client = _clientDetails[appointment.clientId];
+          final service = _serviceDetails[appointment.serviceId];
 
           return Card(
             elevation: 4.0,
@@ -159,6 +174,13 @@ class _PendingAppointmentsScreenState extends State<PendingAppointmentsScreen> {
                     style: theme.textTheme.titleLarge
                         ?.copyWith(fontWeight: FontWeight.bold),
                   ),
+                  if (service != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      service.name,
+                      style: theme.textTheme.titleMedium,
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   const Divider(),
                   const SizedBox(height: 8),
