@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProfileModel {
   final String id; // ID de l'artisan

@@ -1,4 +1,4 @@
-import 'package:coconut_agencement/models/user_model.dart';
+import 'package:coconut_agencement/firebase_options.dart';
 import 'package:coconut_agencement/screens/client_home_screen.dart';
 import 'package:coconut_agencement/screens/home_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -16,7 +16,9 @@ import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   await initializeDateFormatting('fr_FR', null);
   
   // Initialiser le service de notifications
@@ -45,7 +47,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Coconut Agencement',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Color.fromARGB(33 , 106, 55, 47)),
         useMaterial3: true,
       ),
       home: const WelcomeScreen(),

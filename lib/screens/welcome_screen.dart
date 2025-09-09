@@ -1,7 +1,6 @@
 import 'package:coconut_agencement/screens/register_screen-debut.dart';
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
-import 'register_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});

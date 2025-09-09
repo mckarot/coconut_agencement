@@ -163,8 +163,8 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
           onSelected: isEnabled ? (_) => _showConfirmationDialog(time) : null,
           backgroundColor: isEnabled
               ? theme.colorScheme.primary
-              : theme.colorScheme.surfaceVariant,
-          disabledColor: theme.colorScheme.surfaceVariant.withOpacity(0.5),
+              : theme.colorScheme.surfaceContainerHighest,
+          disabledColor: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8.0),
             side: BorderSide(

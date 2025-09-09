@@ -38,16 +38,34 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('${_clientTitles[_selectedIndex]}'),
+        title: Text(_clientTitles[_selectedIndex]),
         actions: [
           IconButton(
             onPressed: () async {
-              await authProvider.signOut();
-              // After sign out, navigate back to the welcome screen
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => const WelcomeScreen()),
-                (Route<dynamic> route) => false,
+              final bool? confirm = await showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Confirmation'),
+                  content: const Text('Voulez-vous vraiment vous déconnecter ?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Annuler'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text('Se déconnecter'),
+                    ),
+                  ],
+                ),
               );
+              if (confirm == true) {
+                await authProvider.signOut();
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                  (Route<dynamic> route) => false,
+                );
+              }
             },
             icon: const Icon(Icons.logout),
           ),

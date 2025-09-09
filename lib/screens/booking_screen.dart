@@ -96,7 +96,7 @@ class _BookingScreenState extends State<BookingScreen> {
                       text: TextSpan(
                         style: Theme.of(context).textTheme.bodyMedium,
                         children: const <TextSpan>[
-                          TextSpan(text: 'Spécialiste en Pose de cuisine\nMontade de meubles\nAgencement d\'intérieur \n'),
+                          TextSpan(text: 'Spécialiste en Pose de cuisine\nMontage de meubles\nAgencement d\'intérieur \n'),
                           TextSpan(text: 'Prenez rendez-vous en quelques clics.', style: TextStyle(fontWeight: FontWeight.bold)),
                         ],
                       ),
