@@ -179,10 +179,22 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
   }
 
   bool _isTimeSlotBooked(TimeOfDay time) {
+    final selectedDateTime = DateTime(
+      widget.selectedDay.year,
+      widget.selectedDay.month,
+      widget.selectedDay.day,
+      time.hour,
+      time.minute,
+    );
+
     for (var appointment in widget.appointmentsForDay) {
-      final appointmentTime = TimeOfDay.fromDateTime(appointment.dateTime);
-      if (appointmentTime.hour == time.hour &&
-          appointmentTime.minute == time.minute) {
+      final appointmentStart = appointment.dateTime;
+      final appointmentEnd =
+          appointmentStart.add(Duration(minutes: appointment.duration));
+
+      if (selectedDateTime.isAtSameMomentAs(appointmentStart) ||
+          (selectedDateTime.isAfter(appointmentStart) &&
+              selectedDateTime.isBefore(appointmentEnd))) {
         return true;
       }
     }

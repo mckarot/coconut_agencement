@@ -57,4 +57,20 @@ class UserService {
       throw Exception('Erreur lors de la récupération des artisans: $e');
     }
   }
+
+  // Get all clients
+  Future<List<UserModel>> getClients() async {
+    try {
+      QuerySnapshot snapshot = await _firestore
+          .collection('users')
+          .where('role', isEqualTo: 'client')
+          .get();
+      
+      return snapshot.docs
+          .map((doc) => UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+          .toList();
+    } catch (e) {
+      throw Exception('Erreur lors de la récupération des clients: $e');
+    }
+  }
 }

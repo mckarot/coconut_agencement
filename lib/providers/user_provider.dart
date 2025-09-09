@@ -111,4 +111,24 @@ class UserProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  List<UserModel> _clients = [];
+  List<UserModel> get clients => _clients;
+
+  // Get all clients
+  Future<void> fetchClients() async {
+    _isLoading = true;
+    _error = null;
+    Future.microtask(() => notifyListeners());
+
+    try {
+      _clients = await _userService.getClients();
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }
+

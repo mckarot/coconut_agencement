@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import '../models/appointment_model.dart';
 
 class AppointmentService {
@@ -57,6 +58,23 @@ class AppointmentService {
   // Créer un nouveau rendez-vous
   Future<String> createAppointment(AppointmentModel appointment) async {
     try {
+      // Vérifier les chevauchements
+      final artisanAppointments = await getArtisanAppointments(appointment.artisanId);
+      final newAppointmentStart = appointment.dateTime;
+      final newAppointmentEnd = newAppointmentStart.add(Duration(minutes: appointment.duration));
+
+      for (final existingAppointment in artisanAppointments) {
+        if (DateUtils.isSameDay(existingAppointment.dateTime, newAppointmentStart)) {
+          final existingAppointmentStart = existingAppointment.dateTime;
+          final existingAppointmentEnd = existingAppointmentStart.add(Duration(minutes: existingAppointment.duration));
+
+          if (newAppointmentStart.isBefore(existingAppointmentEnd) &&
+              newAppointmentEnd.isAfter(existingAppointmentStart)) {
+            throw Exception('Le créneau horaire est déjà pris.');
+          }
+        }
+      }
+
       DocumentReference docRef =
           await _firestore.collection(_collection).add(appointment.toMap());
       return docRef.id;
