@@ -78,7 +78,7 @@ class _CreateAppointmentScreenState extends State<CreateAppointmentScreen> {
           return const Text('Aucun client trouvé.');
         }
         return DropdownButtonFormField<UserModel>(
-          value: _selectedClient,
+          initialValue: _selectedClient,
           hint: const Text('Sélectionner un client'),
           onChanged: (client) {
             setState(() {
@@ -105,7 +105,7 @@ class _CreateAppointmentScreenState extends State<CreateAppointmentScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         return DropdownButtonFormField<ServiceModel>(
-          value: _selectedService,
+          initialValue: _selectedService,
           hint: const Text('Sélectionner un service'),
           onChanged: (service) {
             setState(() {
