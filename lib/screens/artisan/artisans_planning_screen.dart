@@ -202,7 +202,7 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
                         markerBuilder: (context, day, events) {
                           if (events.isEmpty) return null;
                           final hasPending = events.any((appointment) =>
-                              (appointment as AppointmentModel).status ==
+                              (appointment).status ==
                               AppointmentStatus.pending);
                           return Positioned(
                             left: 0,

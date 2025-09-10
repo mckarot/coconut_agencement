@@ -65,3 +65,7 @@
 - [ ] 42. Corriger les bugs identifiés.
 - [ ] 43. Préparer le déploiement (icônes, descriptions, etc.).
 - [ ] 44. Publier l'application sur les stores (Google Play/App Store).
+
+
+corrige le point dans le calendrier user
+time line pour historique user
