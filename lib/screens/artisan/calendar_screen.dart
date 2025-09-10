@@ -147,6 +147,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
 
     return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
       itemCount: appointments.length,
       itemBuilder: (context, index) {
         final appointment = appointments[index];

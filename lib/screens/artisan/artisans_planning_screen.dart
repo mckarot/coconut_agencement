@@ -169,8 +169,11 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedAppointments =
+    final allSelectedAppointments =
         _getAppointmentsForDay(_selectedDay ?? _focusedDay);
+    final selectedAppointments = allSelectedAppointments
+        .where((appt) => appt.status != AppointmentStatus.rejected)
+        .toList();
 
     return Scaffold(
       body: _isLoading
@@ -186,14 +189,49 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
                       firstDay: DateTime.utc(2020, 1, 1),
                       lastDay: DateTime.utc(2030, 12, 31),
                       focusedDay: _focusedDay,
-                      selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                      selectedDayPredicate: (day) =>
+                          isSameDay(_selectedDay, day),
                       onDaySelected: _onDaySelected,
-                      eventLoader: _getAppointmentsForDay,
+                      eventLoader: (day) {
+                        return _getAppointmentsForDay(day)
+                            .where((appt) =>
+                                appt.status != AppointmentStatus.rejected)
+                            .toList();
+                      },
+                      calendarBuilders: CalendarBuilders(
+                        markerBuilder: (context, day, events) {
+                          if (events.isEmpty) return null;
+                          final hasPending = events.any((appointment) =>
+                              (appointment as AppointmentModel).status ==
+                              AppointmentStatus.pending);
+                          return Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: 5,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 7,
+                                  height: 7,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: hasPending
+                                        ? Colors.red
+                                        : Colors.blueAccent,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                       calendarStyle: const CalendarStyle(
                         todayDecoration: BoxDecoration(
                             color: Colors.blueAccent, shape: BoxShape.circle),
                         selectedDecoration: BoxDecoration(
-                            color: Colors.orangeAccent, shape: BoxShape.circle),
+                            color: Colors.orangeAccent,
+                            shape: BoxShape.circle),
                       ),
                       calendarFormat: _calendarFormat,
                       onFormatChanged: (format) {
@@ -297,6 +335,9 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
       final double height = (appointment.duration / 60.0) * hourHeight;
       final client = _clientDetails[appointment.clientId];
       final service = _serviceDetails[appointment.serviceId];
+      final cardColor = appointment.status == AppointmentStatus.pending
+          ? Colors.red.withOpacity(0.8)
+          : Theme.of(context).primaryColor.withOpacity(0.8);
 
       return Positioned(
         top: top,
@@ -306,37 +347,45 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
         child: GestureDetector(
           onTap: () => _showAppointmentDetails(appointment),
           child: Card(
-            color: Theme.of(context).primaryColor.withOpacity(0.8),
+            color: cardColor,
             child: Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        client?.name ?? client?.email ?? 'Client inconnu',
-                        style: const TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.bold),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(width: 20.0),
-                      Text(
-                        service?.name ?? 'Service inconnu',
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontStyle: FontStyle.italic),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4.0),
-                  Text(
-                    '${DateFormat.Hm('fr_FR').format(localDateTime)} - ${DateFormat.Hm('fr_FR').format(localDateTime.add(Duration(minutes: appointment.duration)))}',
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
-                  ),
-                ],
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            client?.name ?? client?.email ?? 'Client inconnu',
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 20.0),
+                        Expanded(
+                          child: Text(
+                            service?.name ?? 'Service inconnu',
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontStyle: FontStyle.italic),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4.0),
+                    Text(
+                      '${DateFormat.Hm('fr_FR').format(localDateTime)} - ${DateFormat.Hm('fr_FR').format(localDateTime.add(Duration(minutes: appointment.duration)))}',
+                      style:
+                          const TextStyle(color: Colors.white, fontSize: 12),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -386,43 +435,51 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
       builder: (BuildContext context) {
         return Container(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Détails du rendez-vous',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16.0),
-              Text('Client: ${client?.name ?? 'Non trouvé'}'),
-              Text('Email: ${client?.email ?? 'Non trouvé'}'),
-              const Divider(height: 20),
-              Text('Service: ${service?.name ?? 'Non trouvé'}'),
-              Text('Date: ${DateFormat.yMMMMd('fr_FR').format(localDateTime)}'),
-              Text('Heure: ${DateFormat.Hm('fr_FR').format(localDateTime)}'),
-              Text('Durée: ${appointment.duration} minutes'),
-              Text('Statut: ${appointment.status.toString().split('.').last}'),
-              const SizedBox(height: 16.0),
-              if (appointment.status == AppointmentStatus.pending)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () => _updateAppointmentStatus(
-                          appointment, AppointmentStatus.confirmed),
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green),
-                      child: const Text('Confirmer'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () => _updateAppointmentStatus(
-                          appointment, AppointmentStatus.rejected),
-                      style:
-                          ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                      child: const Text('Rejeter'),
-                    ),
-                  ],
-                ),
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Détails du rendez-vous',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16.0),
+                Text('Client: ${client?.name ?? 'Non trouvé'}'),
+                Text('Email: ${client?.email ?? 'Non trouvé'}'),
+                const Divider(height: 20),
+                Text('Service: ${service?.name ?? 'Non trouvé'}'),
+                Text(
+                    'Date: ${DateFormat.yMMMMd('fr_FR').format(localDateTime)}'),
+                Text('Heure: ${DateFormat.Hm('fr_FR').format(localDateTime)}'),
+                Text('Durée: ${appointment.duration} minutes'),
+                Text(
+                    'Statut: ${appointment.status.toString().split('.').last}'),
+                const SizedBox(height: 16.0),
+                if (appointment.status == AppointmentStatus.pending)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () => _updateAppointmentStatus(
+                            appointment, AppointmentStatus.confirmed),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.black),
+                        child: const Text('Confirmer'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => _updateAppointmentStatus(
+                            appointment, AppointmentStatus.rejected),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.black),
+                        child: const Text('Rejeter'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16.0),
+              ],
+            ),
           ),
         );
       },
