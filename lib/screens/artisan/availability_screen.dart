@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
-import '../models/appointment_model.dart';
-import '../providers/appointment_provider.dart';
-import 'time_slot_screen.dart';
+import '../../models/appointment_model.dart';
+import '../../providers/appointment_provider.dart';
+import '../user/time_slot_screen.dart';
 
 class AvailabilityScreen extends StatefulWidget {
   final String artisanId;

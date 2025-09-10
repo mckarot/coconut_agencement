@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-import '../providers/user_provider.dart';
-import '../models/user_model.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/user_provider.dart';
+import '../../models/user_model.dart';
 
-class RegisterScreenDebut extends StatefulWidget {
-  const RegisterScreenDebut({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<RegisterScreenDebut> createState() => _RegisterScreenDebutState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenDebutState extends State<RegisterScreenDebut> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -20,7 +20,7 @@ class _RegisterScreenDebutState extends State<RegisterScreenDebut> {
   final _phoneController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
-  final UserRole _selectedRole = UserRole.client;
+  UserRole _selectedRole = UserRole.client;
 
   @override
   void dispose() {
@@ -211,6 +211,32 @@ class _RegisterScreenDebutState extends State<RegisterScreenDebut> {
                         keyboardType: TextInputType.phone,
                       ),
                       const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text('Client'),
+                          Radio<UserRole>(
+                            value: UserRole.client,
+                            groupValue: _selectedRole,
+                            onChanged: (UserRole? value) {
+                              setState(() {
+                                _selectedRole = value!;
+                              });
+                            },
+                          ),
+                          const SizedBox(width: 24),
+                          const Text('Artisan'),
+                          Radio<UserRole>(
+                            value: UserRole.artisan,
+                            groupValue: _selectedRole,
+                            onChanged: (UserRole? value) {
+                              setState(() {
+                                _selectedRole = value!;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
                       if (_errorMessage != null) ...[
                         const SizedBox(height: 16),
                         Text(

@@ -1,6 +1,6 @@
-import 'package:coconut_agencement/screens/privacy_policy_screen.dart';
-import 'package:coconut_agencement/screens/register_screen-debut.dart';
-import 'package:coconut_agencement/screens/terms_of_use_screen.dart';
+import 'package:coconut_agencement/screens/user/privacy_policy_screen.dart';
+import 'package:coconut_agencement/screens/user/register_screen-debut.dart';
+import 'package:coconut_agencement/screens/user/terms_of_use_screen.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'login_screen.dart';

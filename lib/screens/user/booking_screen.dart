@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/user_provider.dart';
+import '../../providers/user_provider.dart';
 import 'client_service_selection_screen.dart';
 
 class BookingScreen extends StatefulWidget {

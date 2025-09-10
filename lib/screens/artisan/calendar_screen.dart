@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
-import '../providers/appointment_provider.dart';
-import '../providers/auth_provider.dart';
-import '../models/appointment_model.dart';
+import '../../providers/appointment_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../models/appointment_model.dart';
 
 
 class CalendarScreen extends StatefulWidget {

@@ -1,27 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-import '../providers/user_provider.dart';
-import '../models/user_model.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/user_provider.dart';
+import '../../models/user_model.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreenDebut extends StatefulWidget {
+  const RegisterScreenDebut({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreenDebut> createState() => _RegisterScreenDebutState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenDebutState extends State<RegisterScreenDebut> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
+  final UserRole _selectedRole = UserRole.client;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _nameController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -39,27 +46,34 @@ class _LoginScreenState extends State<LoginScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final userProvider = Provider.of<UserProvider>(context, listen: false);
 
-      final userCredential = await authProvider.signInWithEmailAndPassword(
+      if (_passwordController.text != _confirmPasswordController.text) {
+        throw Exception('Les mots de passe ne correspondent pas');
+      }
+
+      final userCredential = await authProvider.registerWithEmailAndPassword(
         _emailController.text.trim(),
         _passwordController.text,
       );
 
       if (userCredential.user != null) {
-        final user = await userProvider.getUserById(userCredential.user!.uid);
-        if (user != null) {
-          await userProvider.setUser(user);
-          if (mounted) {
-            if (user.role == UserRole.artisan) {
-              Navigator.pushReplacementNamed(context, '/home');
-            } else {
-              Navigator.pushReplacementNamed(context, '/client-home');
-            }
+        final user = UserModel(
+          id: userCredential.user!.uid,
+          email: _emailController.text.trim(),
+          role: _selectedRole,
+          name: _nameController.text.trim(),
+          phone: _phoneController.text.trim(),
+        );
+        await userProvider.setUser(user);
+
+        if (mounted) {
+          if (user.role == UserRole.artisan) {
+            Navigator.pushReplacementNamed(context, '/home');
+          } else {
+            Navigator.pushReplacementNamed(context, '/client-home');
           }
-        } else {
-          throw Exception("Impossible de trouver les données de l'utilisateur.");
         }
       } else {
-        throw Exception("La connexion a échoué.");
+        throw Exception('Failed to create user account');
       }
     } catch (e) {
       setState(() {
@@ -73,7 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Connexion'),
+        title: const Text('Inscription'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -101,13 +115,30 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Bienvenue',
+                        'Créer un compte',
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: Theme.of(context).colorScheme.primary,
                             ),
                       ),
                       const SizedBox(height: 24),
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: InputDecoration(
+                          labelText: 'Nom complet',
+                          prefixIcon: const Icon(Icons.person),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30.0),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Veuillez entrer votre nom complet';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
                       TextFormField(
                         controller: _emailController,
                         decoration: InputDecoration(
@@ -143,9 +174,43 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Veuillez entrer votre mot de passe';
                           }
+                          if (value.length < 6) {
+                            return 'Le mot de passe doit contenir au moins 6 caractères';
+                          }
                           return null;
                         },
                       ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _confirmPasswordController,
+                        decoration: InputDecoration(
+                          labelText: 'Confirmer le mot de passe',
+                          prefixIcon: const Icon(Icons.lock_outline),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30.0),
+                          ),
+                        ),
+                        obscureText: true,
+                        validator: (value) {
+                          if (value != _passwordController.text) {
+                            return 'Les mots de passe ne correspondent pas';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _phoneController,
+                        decoration: InputDecoration(
+                          labelText: 'Numéro de téléphone',
+                          prefixIcon: const Icon(Icons.phone),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30.0),
+                          ),
+                        ),
+                        keyboardType: TextInputType.phone,
+                      ),
+                      const SizedBox(height: 16),
                       if (_errorMessage != null) ...[
                         const SizedBox(height: 16),
                         Text(
@@ -167,7 +232,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           child: const Text(
-                            'Se connecter',
+                            'S\'inscrire',
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ),

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/service_model.dart';
-import '../providers/service_provider.dart';
-import '../providers/auth_provider.dart';
+import '../../models/service_model.dart';
+import '../../providers/service_provider.dart';
+import '../../providers/auth_provider.dart';
 import 'add_service_screen.dart';
 import 'edit_service_screen.dart';
 

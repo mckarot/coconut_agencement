@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../models/appointment_model.dart';
-import '../providers/appointment_provider.dart';
-import '../providers/auth_provider.dart';
-import '../providers/user_provider.dart';
-import '../models/user_model.dart';
+import '../../models/appointment_model.dart';
+import '../../providers/appointment_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/user_provider.dart';
+import '../../models/user_model.dart';
 
 class AppointmentHistoryScreen extends StatefulWidget {
   final bool isArtisanView;

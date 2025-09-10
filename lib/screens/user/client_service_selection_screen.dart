@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/service_model.dart';
-import '../providers/service_provider.dart';
-import 'availability_screen.dart';
+import '../../models/service_model.dart';
+import '../../providers/service_provider.dart';
+import '../artisan/availability_screen.dart';
+
 
 class ClientServiceSelectionScreen extends StatefulWidget {
   final String artisanId;

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../models/appointment_model.dart';
-import '../models/service_model.dart';
-import '../providers/appointment_provider.dart';
-import '../providers/auth_provider.dart';
-import '../providers/service_provider.dart';
-import '../providers/user_provider.dart';
-import '../providers/notification_provider.dart';
-import '../models/user_model.dart';
+import '../../models/appointment_model.dart';
+import '../../models/service_model.dart';
+import '../../providers/appointment_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/service_provider.dart';
+import '../../providers/user_provider.dart';
+import '../../providers/notification_provider.dart';
+import '../../models/user_model.dart';
 
 class PendingAppointmentsScreen extends StatefulWidget {
   const PendingAppointmentsScreen({super.key});

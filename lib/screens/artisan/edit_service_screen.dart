@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/service_model.dart';
-import '../providers/service_provider.dart';
+import '../../models/service_model.dart';
+import '../../providers/service_provider.dart';
 
 class EditServiceScreen extends StatefulWidget {
   final ServiceModel service;

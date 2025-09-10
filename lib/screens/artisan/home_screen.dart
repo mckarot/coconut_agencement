@@ -1,12 +1,12 @@
-import 'package:coconut_agencement/screens/register_screen.dart';
+import 'package:coconut_agencement/screens/user/register_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-import '../screens/services_list_screen.dart';
+import '../../providers/auth_provider.dart';
+import 'services_list_screen.dart';
 import 'artisans_planning_screen.dart';
 import 'pending_appointments_screen.dart';
-import 'appointment_history_screen.dart';
-import 'welcome_screen.dart';
+import '../user/appointment_history_screen.dart';
+import '../user/welcome_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

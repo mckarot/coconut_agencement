@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:coconut_agencement/models/service_model.dart';
 import 'package:coconut_agencement/providers/service_provider.dart';
-import 'package:coconut_agencement/screens/create_appointment_screen.dart';
+import 'package:coconut_agencement/screens/artisan/create_appointment_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -9,11 +9,11 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
 
-import '../models/appointment_model.dart';
-import '../models/user_model.dart';
-import '../providers/appointment_provider.dart';
-import '../providers/auth_provider.dart';
-import '../providers/user_provider.dart';
+import '../../models/appointment_model.dart';
+import '../../models/user_model.dart';
+import '../../providers/appointment_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/user_provider.dart';
 
 class ArtisanPlanningScreen extends StatefulWidget {
   const ArtisanPlanningScreen({super.key});
