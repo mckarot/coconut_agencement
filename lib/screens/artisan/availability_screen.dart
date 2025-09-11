@@ -98,7 +98,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
           _groupAppointments(appointmentProvider.appointments);
           return TableCalendar<AppointmentModel>(
             locale: 'fr_FR',
-            firstDay: DateTime.utc(2020, 1, 1),
+            firstDay: DateTime.now(),
             lastDay: DateTime.utc(2030, 12, 31),
             focusedDay: _focusedDay,
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
