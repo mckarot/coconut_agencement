@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../models/appointment_model.dart';
 import '../../providers/appointment_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../user/time_slot_screen.dart';
 
 class AvailabilityScreen extends StatefulWidget {
@@ -82,6 +83,9 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final clientId = authProvider.userId;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Choisissez une date'),
@@ -98,7 +102,12 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
             lastDay: DateTime.utc(2030, 12, 31),
             focusedDay: _focusedDay,
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-            eventLoader: _getAppointmentsForDay,
+            eventLoader: (day) {
+              final appointments = _getAppointmentsForDay(day);
+              return appointments
+                  .where((appointment) => appointment.clientId == clientId)
+                  .toList();
+            },
             startingDayOfWeek: StartingDayOfWeek.monday,
             onDaySelected: _onDaySelected,
             onPageChanged: (focusedDay) {
