@@ -6,19 +6,20 @@ import '../../models/service_model.dart';
 import '../../providers/appointment_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/notification_provider.dart';
-import '../../providers/service_provider.dart';
 import '../../providers/user_provider.dart';
 
 class TimeSlotScreen extends StatefulWidget {
   final String artisanId;
   final DateTime selectedDay;
   final List<AppointmentModel> appointmentsForDay;
+  final ServiceModel selectedService;
 
   const TimeSlotScreen({
     super.key,
     required this.artisanId,
     required this.selectedDay,
     required this.appointmentsForDay,
+    required this.selectedService,
   });
 
   @override
@@ -26,39 +27,6 @@ class TimeSlotScreen extends StatefulWidget {
 }
 
 class _TimeSlotScreenState extends State<TimeSlotScreen> {
-  ServiceModel? _selectedService;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadServices();
-  }
-
-  Future<void> _loadServices() async {
-    try {
-      final serviceProvider =
-          Provider.of<ServiceProvider>(context, listen: false);
-      await serviceProvider.loadServices();
-
-      if (mounted) {
-        setState(() {
-          if (serviceProvider.services.isNotEmpty) {
-            _selectedService = serviceProvider.services.first;
-          }
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Erreur de chargement des services: $e")),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -81,45 +49,43 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
             ],
           ),
         ),
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 16),
-                      Text(
-                        DateFormat.yMMMMd('fr_FR').format(widget.selectedDay),
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Service: ${_selectedService?.name ?? 'Non sélectionné'}',
-                        style: theme.textTheme.titleMedium,
-                      ),
-                      Text(
-                        'Durée: ${_selectedService?.defaultDuration ?? 0} minutes',
-                        style: theme.textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'Horaires disponibles',
-                        style: theme.textTheme.titleLarge
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      Expanded(
-                        child: _buildTimeSlotsGrid(),
-                      ),
-                    ],
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
+                Text(
+                  DateFormat.yMMMMd('fr_FR').format(widget.selectedDay),
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
                   ),
                 ),
-              ),
+                const SizedBox(height: 8),
+                Text(
+                  'Service: ${widget.selectedService.name}',
+                  style: theme.textTheme.titleMedium,
+                ),
+                Text(
+                  'Durée: ${widget.selectedService.defaultDuration} minutes',
+                  style: theme.textTheme.titleMedium,
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Horaires disponibles',
+                  style: theme.textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: _buildTimeSlotsGrid(),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -202,7 +168,6 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
   }
 
   void _showConfirmationDialog(TimeOfDay time) {
-    if (_selectedService == null) return;
     final theme = Theme.of(context);
 
     showDialog(
@@ -219,7 +184,7 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
               children: [
                 const TextSpan(text: 'Réserver pour le service '),
                 TextSpan(
-                  text: '"${_selectedService!.name}"',
+                  text: '"${widget.selectedService.name}"',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const TextSpan(text: ' le '),
@@ -280,9 +245,9 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
       id: '',
       clientId: authProvider.userId!,
       artisanId: widget.artisanId,
-      serviceId: _selectedService!.id,
+      serviceId: widget.selectedService.id,
       dateTime: appointmentDateTime,
-      duration: _selectedService!.defaultDuration,
+      duration: widget.selectedService.defaultDuration,
       status: AppointmentStatus.pending,
       createdAt: DateTime.now(),
     );

@@ -59,6 +59,7 @@ class _ClientServiceSelectionScreenState
         FadeRoute(
           page: AvailabilityScreen(
             artisanId: widget.artisanId,
+            selectedService: _selectedService!,
           ),
         ),
       );
@@ -109,10 +110,10 @@ class _ClientServiceSelectionScreenState
                         itemCount: _services.length,
                         itemBuilder: (context, index) {
                           final service = _services[index];
-                          final isSelected = _selectedService?.id == service.id;
                           return ServiceCard(
+                            key: ValueKey(service.id), // Ajout d'une clé unique
                             service: service,
-                            isSelected: isSelected,
+                            isSelected: _selectedService?.id == service.id,
                             onTap: () {
                               setState(() {
                                 _selectedService = service;

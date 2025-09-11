@@ -3,14 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../models/appointment_model.dart';
+import '../../models/service_model.dart';
 import '../../providers/appointment_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../user/time_slot_screen.dart';
 
 class AvailabilityScreen extends StatefulWidget {
   final String artisanId;
+  final ServiceModel selectedService;
 
-  const AvailabilityScreen({super.key, required this.artisanId});
+  const AvailabilityScreen({super.key, required this.artisanId, required this.selectedService});
 
   @override
   State<AvailabilityScreen> createState() => _AvailabilityScreenState();
@@ -24,7 +26,6 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedDay = _focusedDay;
     _loadAppointments();
   }
 
@@ -62,23 +63,22 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
   }
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
-    if (!isSameDay(_selectedDay, selectedDay)) {
-      setState(() {
-        _selectedDay = selectedDay;
-        _focusedDay = focusedDay;
-      });
+    setState(() {
+      _selectedDay = selectedDay;
+      _focusedDay = focusedDay;
+    });
 
-      Navigator.push(
-        context,
-        FadeRoute(
-          page: TimeSlotScreen(
-            artisanId: widget.artisanId,
-            selectedDay: selectedDay,
-            appointmentsForDay: _getAppointmentsForDay(selectedDay),
-          ),
+    Navigator.push(
+      context,
+      FadeRoute(
+        page: TimeSlotScreen(
+          artisanId: widget.artisanId,
+          selectedDay: selectedDay,
+          appointmentsForDay: _getAppointmentsForDay(selectedDay),
+          selectedService: widget.selectedService,
         ),
-      );
-    }
+      ),
+    );
   }
 
   @override
@@ -104,10 +104,37 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
             eventLoader: (day) {
               final appointments = _getAppointmentsForDay(day);
+              // Filtrer les rendez-vous rejetés
               return appointments
-                  .where((appointment) => appointment.clientId == clientId)
+                  .where((appointment) => 
+                      appointment.clientId == clientId && 
+                      appointment.status != AppointmentStatus.rejected)
                   .toList();
             },
+            calendarBuilders: CalendarBuilders(
+              markerBuilder: (context, day, events) {
+                if (events.isEmpty) return null;
+                return Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 4,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: events.map((appointment) {
+                      return Container(
+                        width: 7,
+                        height: 7,
+                        margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _getStatusColor(appointment.status),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                );
+              },
+            ),
             startingDayOfWeek: StartingDayOfWeek.monday,
             onDaySelected: _onDaySelected,
             onPageChanged: (focusedDay) {
@@ -117,5 +144,18 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
         },
       ),
     );
+  }
+
+  Color _getStatusColor(AppointmentStatus status) {
+    switch (status) {
+      case AppointmentStatus.confirmed:
+        return Colors.green;
+      case AppointmentStatus.rejected:
+        return Colors.red;
+      case AppointmentStatus.pending:
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
   }
 }

@@ -1,0 +1,2 @@
+
+Répondez-moi toujours en français, quel que soit le contexte ou la langue de la requête.

@@ -58,7 +58,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             : 'Disponibilités de l\'artisan'),
       ),
       body: Column(
-        children: [ 
+        children: [
           TableCalendar<AppointmentModel>(
             firstDay: DateTime.utc(2020, 1, 1),
             lastDay: DateTime.utc(2030, 12, 31),
@@ -70,13 +70,31 @@ class _CalendarScreenState extends State<CalendarScreen> {
             rangeSelectionMode: _rangeSelectionMode,
             eventLoader: _getEventsForDay,
             startingDayOfWeek: StartingDayOfWeek.monday,
-            calendarStyle: CalendarStyle(
-              // Style des cellules du calendrier
-              outsideDaysVisible: true,
-              markerSize: 5,
-              markersMaxCount: 3,
+            calendarBuilders: CalendarBuilders(
+              markerBuilder: (context, day, events) {
+                if (events.isEmpty) return null;
+                return Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 4,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: events.take(4).map((appointment) {
+                      return Container(
+                        width: 7,
+                        height: 7,
+                        margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _getStatusColor(appointment.status),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                );
+              },
             ),
-            headerStyle: HeaderStyle(
+            headerStyle: const HeaderStyle(
               formatButtonVisible: true,
               titleCentered: true,
             ),
@@ -167,28 +185,37 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
+  Color _getStatusColor(AppointmentStatus status) {
+    switch (status) {
+      case AppointmentStatus.confirmed:
+        return Colors.green;
+      case AppointmentStatus.rejected:
+        return Colors.red;
+      case AppointmentStatus.pending:
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+
   Widget _buildStatusIndicator(AppointmentStatus status) {
-    Color color;
     String text;
     
     switch (status) {
       case AppointmentStatus.confirmed:
-        color = Colors.green;
         text = 'Confirmé';
         break;
       case AppointmentStatus.rejected:
-        color = Colors.red;
         text = 'Rejeté';
         break;
       default:
-        color = Colors.orange;
         text = 'En attente';
     }
     
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       decoration: BoxDecoration(
-        color: color,
+        color: _getStatusColor(status),
         borderRadius: BorderRadius.circular(12.0),
       ),
       child: Text(

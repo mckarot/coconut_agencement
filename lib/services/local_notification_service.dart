@@ -41,7 +41,6 @@ class LocalNotificationService {
       tz.TZDateTime.from(scheduledTime, tz.local),
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          // TODO(fix): The named parameter 'androidScheduleMode' is required, but there's no corresponding argument.Try adding the required argument.
           'your_channel_id',
           'your_channel_name',
           channelDescription: 'your_channel_description',

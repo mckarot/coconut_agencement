@@ -50,12 +50,12 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
       await serviceProvider.createService(service);
 
       if (mounted) {
-        NotificationService.showSuccess(context, 'Service ajouté avec succès');
+        NotificationService.showSuccess('Service ajouté avec succès');
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        NotificationService.showError(context, 'Erreur: $e');
+        NotificationService.showError('Erreur: $e');
       }
     } finally {
       if (mounted) {

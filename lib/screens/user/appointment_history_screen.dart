@@ -95,6 +95,41 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
     _loadAppointments();
   }
 
+  Future<void> _deleteAppointment(String appointmentId) async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Annuler le rendez-vous'),
+        content: const Text('Êtes-vous sûr de vouloir annuler ce rendez-vous ?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Non'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Oui'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete == true) {
+      try {
+        final appointmentProvider = Provider.of<AppointmentProvider>(context, listen: false);
+        await appointmentProvider.deleteAppointment(appointmentId);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Rendez-vous annulé avec succès.')),
+        );
+        _loadAppointments(); // Refresh the list
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erreur lors de l'annulation: $e")),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -197,7 +232,17 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
                 Text('Durée: ${appointment.duration} minutes'),
               ],
             ),
-            trailing: _buildStatusIndicator(appointment.status, theme),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildStatusIndicator(appointment.status, theme),
+                if (!widget.isArtisanView)
+                  IconButton(
+                    icon: Icon(Icons.delete, color: theme.colorScheme.error),
+                    onPressed: () => _deleteAppointment(appointment.id),
+                  ),
+              ],
+            ),
           ),
         );
       },
