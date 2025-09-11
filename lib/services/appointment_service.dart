@@ -104,4 +104,23 @@ class AppointmentService {
       throw Exception('Erreur lors de la suppression du rendez-vous: $e');
     }
   }
+
+  // Supprimer tous les rendez-vous d'un client
+  Future<void> deleteClientAppointments(String clientId) async {
+    try {
+      final snapshot = await _firestore
+          .collection(_collection)
+          .where('clientId', isEqualTo: clientId)
+          .get();
+      
+      final batch = _firestore.batch();
+      for (final doc in snapshot.docs) {
+        batch.delete(doc.reference);
+      }
+      
+      await batch.commit();
+    } catch (e) {
+      throw Exception('Erreur lors de la suppression des rendez-vous du client: $e');
+    }
+  }
 }

@@ -50,4 +50,6 @@ class AuthService {
       throw Exception(e.message);
     }
   }
+
+  Future<void> deleteAccount() async {}
 }

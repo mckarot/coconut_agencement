@@ -73,4 +73,13 @@ class UserService {
       throw Exception('Erreur lors de la récupération des clients: $e');
     }
   }
+
+  // Delete user data
+  Future<void> deleteUser(String userId) async {
+    try {
+      await _firestore.collection('users').doc(userId).delete();
+    } catch (e) {
+      throw Exception('Erreur lors de la suppression des données utilisateur: $e');
+    }
+  }
 }

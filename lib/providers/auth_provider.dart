@@ -53,4 +53,13 @@ class AuthProvider with ChangeNotifier {
       throw Exception(e.toString());
     }
   }
+
+  // Delete account
+  Future<void> deleteAccount() async {
+    try {
+      await _authService.deleteAccount();
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
 }
