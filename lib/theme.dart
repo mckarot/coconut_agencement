@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Couleurs principales basées sur la couleur actuelle (33, 106, 55, 47)
-  static const Color primaryColor = Color.fromARGB(255, 33, 106, 55);
-  static const Color primaryColorLight = Color.fromARGB(255, 55, 140, 75);
-  static const Color primaryColorDark = Color.fromARGB(255, 20, 75, 35);
+  // Couleurs principales basées sur la nouvelle couleur (111, 51, 34)
+  static const Color primaryColor = Color(0xFF6F3322);
+  static const Color primaryColorLight = Color(0xFFA16450);
+  static const Color primaryColorDark = Color(0xFF441105);
   
   // Couleurs secondaires
   static const Color secondaryColor = Color.fromARGB(255, 247, 191, 86); // Or
@@ -123,7 +123,7 @@ class AppTheme {
         secondary: secondaryColor,
         onSecondary: textColorPrimary,
         surface: surfaceColor,
-        background: backgroundColor,
+        surfaceTint: backgroundColor, // Replacing deprecated background with surfaceTint
         error: errorColor,
         onError: surfaceColor,
       ),

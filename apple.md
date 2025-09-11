@@ -28,7 +28,8 @@ Follow these requirements when updating an app to support account deletion:
 
 Next Steps
 
-Update the app to support account deletion. If the app already supports account deletion, reply to App Review in App Store Connect and identify where to locate this feature.
+Update the app to support account deletion. If the app already supports acc
+ount deletion, reply to App Review in App Store Connect and identify where to locate this feature.
 
 If the app is unable to offer account deletion or needs to provide additional customer service flows to facilitate and confirm account deletion, either because the app operates in a highly-regulated industry or for some other reason, reply to App Review in App Store Connect and provide additional information or documentation. For questions regarding legal obligations, check with legal counsel.
 

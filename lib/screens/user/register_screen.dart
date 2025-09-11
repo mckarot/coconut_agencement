@@ -90,6 +90,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         title: const Text('Inscription'),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.primary),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       extendBodyBehindAppBar: true,
       body: Container(
