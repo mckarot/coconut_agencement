@@ -1,9 +1,12 @@
+import 'package:coconut_agencement/providers/user_provider.dart';
+import 'package:coconut_agencement/screens/guest/guest_service_selection_screen.dart';
 import 'package:coconut_agencement/screens/user/privacy_policy_screen.dart';
-import 'package:coconut_agencement/screens/user/register_screen-debut.dart';
+import 'package:coconut_agencement/screens/user/register_screen.dart';
 import 'package:coconut_agencement/screens/user/terms_of_use_screen.dart';
 import 'package:coconut_agencement/widgets/fade_route.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'login_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -14,6 +17,47 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
+  bool _isLoading = false;
+
+  Future<void> _exploreAsGuest() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      await userProvider.fetchArtisans();
+
+      if (mounted) {
+        if (userProvider.artisans.isNotEmpty) {
+          final artisanId = userProvider.artisans.first.id;
+          Navigator.push(
+            context,
+            FadeRoute(
+              page: GuestServiceSelectionScreen(
+                artisanId: artisanId,
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Aucun artisan n\'est disponible pour le moment.')));
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,7 +76,38 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             padding: const EdgeInsets.only(left: 24, right: 24, bottom: 50),
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _exploreAsGuest,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.white.withOpacity(0.9),
+                    foregroundColor: Theme.of(context).primaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          'Découvrir nos services',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(
+                                color: Theme.of(context).primaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                ),
+                const SizedBox(height: 16),
                 Row(
                   children: <Widget>[
                     Expanded(
@@ -70,7 +145,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            FadeRoute(page: const RegisterScreenDebut()),
+                            FadeRoute(page: const RegisterScreen()),
                           );
                         },
                         style: ElevatedButton.styleFrom(
