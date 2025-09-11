@@ -1,8 +1,10 @@
+import 'package:coconut_agencement/widgets/fade_route.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/service_model.dart';
 import '../../providers/service_provider.dart';
 import '../artisan/availability_screen.dart';
+import '../../widgets/service_card.dart';
 
 
 class ClientServiceSelectionScreen extends StatefulWidget {
@@ -54,8 +56,8 @@ class _ClientServiceSelectionScreenState
     if (_selectedService != null) {
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => AvailabilityScreen(
+        FadeRoute(
+          page: AvailabilityScreen(
             artisanId: widget.artisanId,
           ),
         ),
@@ -108,48 +110,14 @@ class _ClientServiceSelectionScreenState
                         itemBuilder: (context, index) {
                           final service = _services[index];
                           final isSelected = _selectedService?.id == service.id;
-                          return Card(
-                            elevation: isSelected ? 8.0 : 2.0,
-                            margin: const EdgeInsets.symmetric(vertical: 8.0),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12.0),
-                              side: BorderSide(
-                                color: isSelected
-                                    ? theme.colorScheme.primary
-                                    : Colors.transparent,
-                                width: 2,
-                              ),
-                            ),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.all(16.0),
-                              title: Text(
-                                service.name,
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              subtitle: Padding(
-                                padding: const EdgeInsets.only(top: 8.0),
-                                child: Text(service.description),
-                              ),
-                              trailing: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  const Icon(Icons.timer_outlined, size: 20),
-                                  const SizedBox(height: 4),
-                                  Text('${service.defaultDuration} min'),
-                                ],
-                              ),
-                              onTap: () {
-                                setState(() {
-                                  _selectedService = service;
-                                });
-                              },
-                              selected: isSelected,
-                              selectedTileColor:
-                                  theme.colorScheme.primary.withOpacity(0.08),
-                            ),
+                          return ServiceCard(
+                            service: service,
+                            isSelected: isSelected,
+                            onTap: () {
+                              setState(() {
+                                _selectedService = service;
+                              });
+                            },
                           );
                         },
                       ),

@@ -1,7 +1,9 @@
 import 'dart:async';
+
 import 'package:coconut_agencement/models/service_model.dart';
 import 'package:coconut_agencement/providers/service_provider.dart';
 import 'package:coconut_agencement/screens/artisan/create_appointment_screen.dart';
+import 'package:coconut_agencement/widgets/fade_route.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -252,9 +254,7 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const CreateAppointmentScreen(),
-            ),
+            FadeRoute(page: const CreateAppointmentScreen()),
           );
         },
         child: const Icon(Icons.add),

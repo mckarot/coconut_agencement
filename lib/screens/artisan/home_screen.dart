@@ -1,4 +1,5 @@
 import 'package:coconut_agencement/screens/user/register_screen.dart';
+import 'package:coconut_agencement/widgets/fade_route.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -52,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                FadeRoute(page: const RegisterScreen()),
               );
             },
           ),
@@ -78,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
               if (confirm == true) {
                 await authProvider.signOut();
                 Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                  FadeRoute(page: const WelcomeScreen()),
                   (Route<dynamic> route) => false,
                 );
               }

@@ -1,7 +1,9 @@
 import 'package:coconut_agencement/firebase_options.dart';
 import 'package:coconut_agencement/screens/user/client_home_screen.dart';
 import 'package:coconut_agencement/screens/artisan/home_screen.dart';
+import 'package:coconut_agencement/services/local_notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:coconut_agencement/services/navigator_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -12,7 +14,7 @@ import 'providers/service_provider.dart';
 import 'providers/appointment_provider.dart';
 import 'providers/profile_provider.dart';
 import 'screens/user/welcome_screen.dart';
-import 'services/notification_service.dart';
+import 'theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,10 +22,10 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await initializeDateFormatting('fr_FR', null);
-  
-  // Initialiser le service de notifications
-  await NotificationService().init();
-  
+
+  // Initialiser le service de notifications locales
+  await LocalNotificationService().init();
+
   runApp(
     MultiProvider(
       providers: [
@@ -46,10 +48,15 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Coconut Agencement',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Color.fromARGB(33 , 106, 55, 47)),
-        useMaterial3: true,
+      theme: AppTheme.theme.copyWith(
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: _FadePageTransitionsBuilder(),
+            TargetPlatform.iOS: _FadePageTransitionsBuilder(),
+          },
+        ),
       ),
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       home: const WelcomeScreen(),
       routes: {
@@ -57,5 +64,20 @@ class MyApp extends StatelessWidget {
         '/client-home': (context) => const ClientHomeScreen(),
       },
     );
+  }
+}
+
+class _FadePageTransitionsBuilder extends PageTransitionsBuilder {
+  const _FadePageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return FadeTransition(opacity: animation, child: child);
   }
 }

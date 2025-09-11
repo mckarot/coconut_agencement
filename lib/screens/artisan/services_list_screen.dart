@@ -1,3 +1,4 @@
+import 'package:coconut_agencement/widgets/fade_route.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/service_model.dart';
@@ -47,9 +48,8 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
           if (authProvider.userId != null) {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    AddServiceScreen(artisanId: authProvider.userId!),
+              FadeRoute(
+                page: AddServiceScreen(artisanId: authProvider.userId!),
               ),
             ).then((_) => _loadServices());
           }
@@ -109,8 +109,8 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
                 if (artisanId != null) {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => EditServiceScreen(
+                    FadeRoute(
+                      page: EditServiceScreen(
                         service: service,
                         artisanId: artisanId,
                       ),

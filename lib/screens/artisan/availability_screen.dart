@@ -1,3 +1,4 @@
+import 'package:coconut_agencement/widgets/fade_route.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -68,8 +69,8 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
 
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => TimeSlotScreen(
+        FadeRoute(
+          page: TimeSlotScreen(
             artisanId: widget.artisanId,
             selectedDay: selectedDay,
             appointmentsForDay: _getAppointmentsForDay(selectedDay),

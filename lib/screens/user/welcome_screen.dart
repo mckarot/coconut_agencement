@@ -1,6 +1,7 @@
 import 'package:coconut_agencement/screens/user/privacy_policy_screen.dart';
 import 'package:coconut_agencement/screens/user/register_screen-debut.dart';
 import 'package:coconut_agencement/screens/user/terms_of_use_screen.dart';
+import 'package:coconut_agencement/widgets/fade_route.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
@@ -39,20 +40,27 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const LoginScreen()),
+                            FadeRoute(page: const LoginScreen()),
                           );
                         },
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           backgroundColor: Theme.of(context).primaryColor,
-                          foregroundColor: Colors.white,
+                          foregroundColor:
+                              Theme.of(context).colorScheme.onPrimary,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30.0),
                           ),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Se connecter',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.onPrimary,
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                       ),
                     ),
@@ -62,20 +70,27 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const RegisterScreenDebut()),
+                            FadeRoute(page: const RegisterScreenDebut()),
                           );
                         },
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: Colors.white,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.surface,
                           foregroundColor: Theme.of(context).primaryColor,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30.0),
                           ),
                         ),
-                        child: const Text(
+                        child: Text(
                           'S\'inscrire',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(
+                                color: Theme.of(context).primaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                       ),
                     ),
@@ -87,15 +102,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   child: RichText(
                     textAlign: TextAlign.center,
                     text: TextSpan(
-                      style: const TextStyle(
-                        color: Colors.black,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 12,
                       ),
                       children: [
-                        const TextSpan(text: 'En continuant, vous acceptez notre '),
+                        const TextSpan(
+                            text: 'En continuant, vous acceptez notre '),
                         TextSpan(
                           text: 'Politique de confidentialité',
-                          style: const TextStyle(
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColor,
                             fontWeight: FontWeight.bold,
                             decoration: TextDecoration.underline,
                           ),
@@ -103,16 +120,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             ..onTap = () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (context) => const PrivacyPolicyScreen(),
-                                ),
+                                FadeRoute(page: const PrivacyPolicyScreen()),
                               );
                             },
                         ),
                         const TextSpan(text: ' et nos '),
                         TextSpan(
                           text: 'Conditions d\'utilisation',
-                          style: const TextStyle(
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColor,
                             fontWeight: FontWeight.bold,
                             decoration: TextDecoration.underline,
                           ),
@@ -120,13 +136,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             ..onTap = () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (context) => const TermsOfUseScreen(),
-                                ),
+                                FadeRoute(page: const TermsOfUseScreen()),
                               );
                             },
                         ),
-                        const TextSpan(text: '.'),
                       ],
                     ),
                   ),

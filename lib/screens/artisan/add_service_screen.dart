@@ -1,3 +1,4 @@
+import 'package:coconut_agencement/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/service_model.dart';
@@ -49,16 +50,12 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
       await serviceProvider.createService(service);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Service ajouté avec succès')),
-        );
+        NotificationService.showSuccess(context, 'Service ajouté avec succès');
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
-        );
+        NotificationService.showError(context, 'Erreur: $e');
       }
     } finally {
       if (mounted) {

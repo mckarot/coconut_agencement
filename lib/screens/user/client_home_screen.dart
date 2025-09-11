@@ -1,3 +1,4 @@
+import 'package:coconut_agencement/widgets/fade_route.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -62,7 +63,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
               if (confirm == true) {
                 await authProvider.signOut();
                 Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                  FadeRoute(page: const WelcomeScreen()),
                   (Route<dynamic> route) => false,
                 );
               }

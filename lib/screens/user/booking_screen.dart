@@ -1,3 +1,4 @@
+import 'package:coconut_agencement/widgets/fade_route.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/user_provider.dart';
@@ -28,8 +29,8 @@ class _BookingScreenState extends State<BookingScreen> {
           final artisanId = userProvider.artisans.first.id;
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => ClientServiceSelectionScreen(
+            FadeRoute(
+              page: ClientServiceSelectionScreen(
                 artisanId: artisanId,
               ),
             ),

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import '../services/notification_service.dart';
+import '../services/local_notification_service.dart';
 
 class NotificationProvider with ChangeNotifier {
-  final NotificationService _notificationService = NotificationService();
+  final LocalNotificationService _localNotificationService = 
+      LocalNotificationService();
   bool _isLoading = false;
 
   bool get isLoading => _isLoading;
@@ -19,7 +20,7 @@ class NotificationProvider with ChangeNotifier {
     try {
       // Dans une vraie application, nous récupérerions le token FCM de l'artisan
       // Ici, nous simulons l'envoi d'une notification locale
-      await _notificationService.scheduleNotification(
+      await _localNotificationService.scheduleNotification(
         title: 'Nouvelle demande de rendez-vous',
         body:
             '$clientName a demandé un rendez-vous pour le ${appointmentDate.day}/${appointmentDate.month}/${appointmentDate.year}',
@@ -47,7 +48,7 @@ class NotificationProvider with ChangeNotifier {
       // Dans une vraie application, nous récupérerions le token FCM du client
       // Ici, nous simulons l'envoi d'une notification locale
       String status = isConfirmed ? 'confirmé' : 'refusé';
-      await _notificationService.scheduleNotification(
+      await _localNotificationService.scheduleNotification(
         title: 'Rendez-vous $status',
         body:
             'Votre rendez-vous avec $artisanName pour le ${appointmentDate.day}/${appointmentDate.month}/${appointmentDate.year} a été $status',
