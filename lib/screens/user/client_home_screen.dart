@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import 'appointment_history_screen.dart';
 import 'booking_screen.dart';
+import 'change_password_screen.dart';
 import 'welcome_screen.dart';
 
 class ClientHomeScreen extends StatefulWidget {
@@ -99,6 +100,44 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
     }
   }
 
+  Future<void> _signOut() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final bool? confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmation'),
+        content: const Text('Voulez-vous vraiment vous déconnecter ?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Se déconnecter'),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true && mounted) {
+      await authProvider.signOut();
+      Navigator.of(context).pushAndRemoveUntil(
+        FadeRoute(page: const WelcomeScreen()),
+        (Route<dynamic> route) => false,
+      );
+    }
+  }
+
+  Future<void> _changePassword() async {
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ChangePasswordScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -106,38 +145,60 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_clientTitles[_selectedIndex]),
-        actions: [
-          IconButton(
-            onPressed: () async {
-              final bool? confirm = await showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Confirmation'),
-                  content:
-                      const Text('Voulez-vous vraiment vous déconnecter ?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: const Text('Annuler'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      child: const Text('Se déconnecter'),
-                    ),
-                  ],
-                ),
-              );
-              if (confirm == true) {
-                await authProvider.signOut();
-                Navigator.of(context).pushAndRemoveUntil(
-                  FadeRoute(page: const WelcomeScreen()),
-                  (Route<dynamic> route) => false,
-                );
-              }
-            },
-            icon: const Icon(Icons.logout),
-          ),
-        ],
+        leading: Builder(
+          builder: (BuildContext context) {
+            return IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+            );
+          },
+        ),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+              ),
+              padding: EdgeInsets.zero,
+              margin: EdgeInsets.zero,
+              child: Image.asset(
+                'assets/images/logo-appli.png',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete),
+              title: const Text('Supprimer mon compte'),
+              onTap: () {
+                Navigator.pop(context);
+                _deleteAccount();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.lock),
+              title: const Text('Modifier mon mot de passe'),
+              onTap: () {
+                Navigator.pop(context);
+                _changePassword();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Déconnexion'),
+              onTap: () {
+                Navigator.pop(context);
+                _signOut();
+              },
+            ),
+          ],
+        ),
       ),
       body: _clientScreens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
@@ -152,10 +213,6 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.history),
             label: 'Rendez-vous',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.delete_forever, color: Colors.red),
-            label: 'Supprimer compte',
           ),
         ],
       ),

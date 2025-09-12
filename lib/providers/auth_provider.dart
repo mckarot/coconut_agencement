@@ -26,7 +26,7 @@ class AuthProvider with ChangeNotifier {
     try {
       return await _authService.signInWithEmailAndPassword(email, password);
     } catch (e) {
-      throw Exception(e.toString());
+      rethrow;
     }
   }
 
@@ -36,7 +36,7 @@ class AuthProvider with ChangeNotifier {
     try {
       return await _authService.registerWithEmailAndPassword(email, password);
     } catch (e) {
-      throw Exception(e.toString());
+      rethrow;
     }
   }
 
@@ -50,7 +50,7 @@ class AuthProvider with ChangeNotifier {
     try {
       await _authService.sendPasswordResetEmail(email);
     } catch (e) {
-      throw Exception(e.toString());
+      rethrow;
     }
   }
 
@@ -59,7 +59,16 @@ class AuthProvider with ChangeNotifier {
     try {
       await _authService.deleteAccount();
     } catch (e) {
-      throw Exception(e.toString());
+      rethrow;
+    }
+  }
+
+  // Change password
+  Future<void> changePassword(String currentPassword, String newPassword) async {
+    try {
+      await _authService.changePassword(currentPassword, newPassword);
+    } catch (e) {
+      rethrow;
     }
   }
 }

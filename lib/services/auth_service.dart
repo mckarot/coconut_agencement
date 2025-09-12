@@ -17,8 +17,8 @@ class AuthService {
         password: password,
       );
       return userCredential;
-    } on FirebaseAuthException catch (e) {
-      throw Exception(e.message);
+    } on FirebaseAuthException {
+      rethrow;
     }
   }
 
@@ -32,8 +32,8 @@ class AuthService {
         password: password,
       );
       return userCredential;
-    } on FirebaseAuthException catch (e) {
-      throw Exception(e.message);
+    } on FirebaseAuthException {
+      rethrow;
     }
   }
 
@@ -46,10 +46,50 @@ class AuthService {
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
-    } on FirebaseAuthException catch (e) {
-      throw Exception(e.message);
+    } on FirebaseAuthException {
+      rethrow;
     }
   }
 
-  Future<void> deleteAccount() async {}
+  Future<void> deleteAccount() async {
+    try {
+      await _auth.currentUser?.delete();
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        throw Exception(
+            'Cette opération est sensible et nécessite une authentification récente. Veuillez vous reconnecter avant de réessayer.');
+      }
+      rethrow;
+    }
+  }
+
+  // Change password
+  Future<void> changePassword(String currentPassword, String newPassword) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('Aucun utilisateur connecté');
+      }
+
+      // Réauthentifier l'utilisateur avec le mot de passe actuel
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPassword,
+      );
+      await user.reauthenticateWithCredential(credential);
+
+      // Changer le mot de passe
+      await user.updatePassword(newPassword);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'wrong-password') {
+        throw Exception('Le mot de passe actuel est incorrect');
+      } else if (e.code == 'weak-password') {
+        throw Exception('Le nouveau mot de passe est trop faible');
+      } else if (e.code == 'requires-recent-login') {
+        throw Exception(
+            'Cette opération est sensible et nécessite une authentification récente. Veuillez vous reconnecter avant de réessayer.');
+      }
+      rethrow;
+    }
+  }
 }

@@ -193,9 +193,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         return Colors.red;
       case AppointmentStatus.pending:
         return Colors.orange;
-      default:
-        return Colors.grey;
-    }
+      }
   }
 
   Widget _buildStatusIndicator(AppointmentStatus status) {

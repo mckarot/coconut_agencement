@@ -154,8 +154,6 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
         return Colors.red;
       case AppointmentStatus.pending:
         return Colors.orange;
-      default:
-        return Colors.grey;
-    }
+      }
   }
 }

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -61,9 +62,33 @@ class _LoginScreenState extends State<LoginScreen> {
       } else {
         throw Exception("La connexion a échoué.");
       }
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      switch (e.code) {
+        case 'user-not-found':
+        case 'wrong-password':
+        case 'invalid-credential':
+          errorMessage = 'Email ou mot de passe incorrect.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'L\'adresse email est invalide.';
+          break;
+        case 'user-disabled':
+          errorMessage = 'Cet utilisateur a été désactivé.';
+          break;
+        case 'too-many-requests':
+          errorMessage = 'Trop de tentatives de connexion. Veuillez réessayer plus tard.';
+          break;
+        default:
+          errorMessage = 'Une erreur d\'authentification est survenue. Veuillez réessayer.';
+      }
+      setState(() {
+        _errorMessage = errorMessage;
+        _isLoading = false;
+      });
     } catch (e) {
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
         _isLoading = false;
       });
     }

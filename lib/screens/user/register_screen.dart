@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -75,9 +76,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
       } else {
         throw Exception('Failed to create user account');
       }
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      switch (e.code) {
+        case 'weak-password':
+          errorMessage = 'Le mot de passe est trop faible.';
+          break;
+        case 'email-already-in-use':
+          errorMessage = 'Cette adresse email est déjà utilisée par un autre compte.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'L\'adresse email est invalide.';
+          break;
+        default:
+          errorMessage = 'Une erreur est survenue. Veuillez réessayer.';
+      }
+      setState(() {
+        _errorMessage = errorMessage;
+        _isLoading = false;
+      });
     } catch (e) {
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
         _isLoading = false;
       });
     }
