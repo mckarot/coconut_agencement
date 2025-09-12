@@ -250,15 +250,7 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
                     ),
                   ],
                 ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            FadeRoute(page: const CreateAppointmentScreen()),
-          );
-        },
-        child: const Icon(Icons.add),
-      ),
+      
     );
   }
 

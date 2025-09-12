@@ -7,6 +7,7 @@ import '../../models/service_model.dart';
 import '../../providers/appointment_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../user/time_slot_screen.dart';
+import 'appointment_creation/artisan_time_slot_screen.dart';
 
 class AvailabilityScreen extends StatefulWidget {
   final String artisanId;
@@ -68,17 +69,36 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
       _focusedDay = focusedDay;
     });
 
-    Navigator.push(
-      context,
-      FadeRoute(
-        page: TimeSlotScreen(
-          artisanId: widget.artisanId,
-          selectedDay: selectedDay,
-          appointmentsForDay: _getAppointmentsForDay(selectedDay),
-          selectedService: widget.selectedService,
+    // Vérifier si nous sommes dans le workflow de création de rendez-vous par l'artisan
+    // Pour cela, nous allons vérifier si un clientId a été passé via les arguments
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args != null && args is Map && args['clientId'] != null) {
+      // Naviguer vers l'écran de sélection du créneau horaire pour l'artisan
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ArtisanTimeSlotScreen(
+            clientId: args['clientId'],
+            selectedDay: selectedDay,
+            appointmentsForDay: _getAppointmentsForDay(selectedDay),
+            selectedService: widget.selectedService,
+          ),
         ),
-      ),
-    );
+      );
+    } else {
+      // Workflow standard pour le client
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TimeSlotScreen(
+            artisanId: widget.artisanId,
+            selectedDay: selectedDay,
+            appointmentsForDay: _getAppointmentsForDay(selectedDay),
+            selectedService: widget.selectedService,
+          ),
+        ),
+      );
+    }
   }
 
   @override

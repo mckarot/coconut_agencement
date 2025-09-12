@@ -7,10 +7,10 @@ import '../../providers/auth_provider.dart';
 import 'services_list_screen.dart';
 import 'artisans_planning_screen.dart';
 import 'pending_appointments_screen.dart';
-import 'create_appointment_artisan_screen.dart';
+import 'appointment_creation/artisan_appointment_creation_screen.dart';
 import '../user/appointment_history_screen.dart';
-import '../user/change_password_screen.dart';
 import '../user/welcome_screen.dart';
+import 'artisan_change_password_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -89,14 +89,14 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const ChangePasswordScreen(),
+        builder: (context) => const ArtisanChangePasswordScreen(),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    Provider.of<AuthProvider>(context, listen: false);
     final screenWidth = MediaQuery.of(context).size.width;
     final drawerWidth = screenWidth * 0.45; // 45% de la largeur de l'écran
 
@@ -159,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const CreateAppointmentArtisanScreen(),
+                      builder: (context) => const ArtisanAppointmentCreationScreen(),
                     ),
                   );
                 },
