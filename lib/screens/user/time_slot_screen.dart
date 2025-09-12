@@ -68,10 +68,6 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
                   'Service: ${widget.selectedService.name}',
                   style: theme.textTheme.titleMedium,
                 ),
-                Text(
-                  'Durée: ${widget.selectedService.defaultDuration} minutes',
-                  style: theme.textTheme.titleMedium,
-                ),
                 const SizedBox(height: 24),
                 Text(
                   'Options de réservation',

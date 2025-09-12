@@ -70,6 +70,9 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
         }
       }
 
+      // Trier les rendez-vous du plus proche au plus lointain dans le temps
+      filteredAppointments.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+
       if (mounted) {
         setState(() {
           _appointments = filteredAppointments;
