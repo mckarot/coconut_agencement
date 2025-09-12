@@ -61,15 +61,12 @@ class AppointmentService {
       // Vérifier les chevauchements
       final artisanAppointments = await getArtisanAppointments(appointment.artisanId);
       final newAppointmentStart = appointment.dateTime;
-      final newAppointmentEnd = newAppointmentStart.add(Duration(minutes: appointment.duration));
+      // final newAppointmentEnd = newAppointmentStart.add(Duration(minutes: appointment.duration));
 
       for (final existingAppointment in artisanAppointments) {
         if (DateUtils.isSameDay(existingAppointment.dateTime, newAppointmentStart)) {
-          final existingAppointmentStart = existingAppointment.dateTime;
-          final existingAppointmentEnd = existingAppointmentStart.add(Duration(minutes: existingAppointment.duration));
-
-          if (newAppointmentStart.isBefore(existingAppointmentEnd) &&
-              newAppointmentEnd.isAfter(existingAppointmentStart)) {
+          // Vérifier les chevauchements selon le type de réservation
+          if (_hasOverlap(appointment, existingAppointment)) {
             throw Exception('Le créneau horaire est déjà pris.');
           }
         }
@@ -81,6 +78,83 @@ class AppointmentService {
     } catch (e) {
       throw Exception('Erreur lors de la création du rendez-vous: $e');
     }
+  }
+
+  // Vérifier s'il y a un chevauchement entre deux réservations
+  bool _hasOverlap(AppointmentModel newAppointment, AppointmentModel existingAppointment) {
+    // Si l'une des réservations est une journée entière, il y a chevauchement
+    if (newAppointment.type == AppointmentType.fullDay || existingAppointment.type == AppointmentType.fullDay) {
+      return true;
+    }
+    
+    // Si les deux réservations sont des créneaux standards, vérifier le chevauchement classique
+    if (newAppointment.type == AppointmentType.slot && existingAppointment.type == AppointmentType.slot) {
+      final newStart = newAppointment.dateTime;
+      final newEnd = newStart.add(Duration(minutes: newAppointment.duration));
+      final existingStart = existingAppointment.dateTime;
+      final existingEnd = existingStart.add(Duration(minutes: existingAppointment.duration));
+      
+      return newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart);
+    }
+    
+    // Si une réservation est un créneau standard et l'autre une demi-journée
+    if (newAppointment.type == AppointmentType.slot && existingAppointment.type == AppointmentType.morning) {
+      // Vérifier si le créneau standard chevauche la matinée (8h-12h)
+      final newStart = newAppointment.dateTime;
+      final newEnd = newStart.add(Duration(minutes: newAppointment.duration));
+      final morningStart = DateTime(newStart.year, newStart.month, newStart.day, 8, 0);
+      final morningEnd = DateTime(newStart.year, newStart.month, newStart.day, 12, 0);
+      
+      return newStart.isBefore(morningEnd) && newEnd.isAfter(morningStart);
+    }
+    
+    if (newAppointment.type == AppointmentType.slot && existingAppointment.type == AppointmentType.afternoon) {
+      // Vérifier si le créneau standard chevauche l'après-midi (13h-19h)
+      final newStart = newAppointment.dateTime;
+      final newEnd = newStart.add(Duration(minutes: newAppointment.duration));
+      final afternoonStart = DateTime(newStart.year, newStart.month, newStart.day, 13, 0);
+      final afternoonEnd = DateTime(newStart.year, newStart.month, newStart.day, 19, 0);
+      
+      return newStart.isBefore(afternoonEnd) && newEnd.isAfter(afternoonStart);
+    }
+    
+    if (newAppointment.type == AppointmentType.morning && existingAppointment.type == AppointmentType.slot) {
+      // Vérifier si le créneau standard chevauche la matinée (8h-12h)
+      final existingStart = existingAppointment.dateTime;
+      final existingEnd = existingStart.add(Duration(minutes: existingAppointment.duration));
+      final morningStart = DateTime(existingStart.year, existingStart.month, existingStart.day, 8, 0);
+      final morningEnd = DateTime(existingStart.year, existingStart.month, existingStart.day, 12, 0);
+      
+      return existingStart.isBefore(morningEnd) && existingEnd.isAfter(morningStart);
+    }
+    
+    if (newAppointment.type == AppointmentType.afternoon && existingAppointment.type == AppointmentType.slot) {
+      // Vérifier si le créneau standard chevauche l'après-midi (13h-19h)
+      final existingStart = existingAppointment.dateTime;
+      final existingEnd = existingStart.add(Duration(minutes: existingAppointment.duration));
+      final afternoonStart = DateTime(existingStart.year, existingStart.month, existingStart.day, 13, 0);
+      final afternoonEnd = DateTime(existingStart.year, existingStart.month, existingStart.day, 19, 0);
+      
+      return existingStart.isBefore(afternoonEnd) && existingEnd.isAfter(afternoonStart);
+    }
+    
+    // Si les deux réservations sont des demi-journées, vérifier si c'est la même demi-journée
+    if (newAppointment.type == AppointmentType.morning && existingAppointment.type == AppointmentType.morning) {
+      return true;
+    }
+    
+    if (newAppointment.type == AppointmentType.afternoon && existingAppointment.type == AppointmentType.afternoon) {
+      return true;
+    }
+    
+    // Si une réservation est le matin et l'autre l'après-midi, il n'y a pas de chevauchement
+    if ((newAppointment.type == AppointmentType.morning && existingAppointment.type == AppointmentType.afternoon) ||
+        (newAppointment.type == AppointmentType.afternoon && existingAppointment.type == AppointmentType.morning)) {
+      return false;
+    }
+    
+    // Par défaut, il n'y a pas de chevauchement
+    return false;
   }
 
   // Mettre à jour un rendez-vous

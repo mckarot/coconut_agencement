@@ -2,8 +2,7 @@ import 'dart:async';
 
 import 'package:coconut_agencement/models/service_model.dart';
 import 'package:coconut_agencement/providers/service_provider.dart';
-import 'package:coconut_agencement/screens/artisan/create_appointment_screen.dart';
-import 'package:coconut_agencement/widgets/fade_route.dart';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -203,27 +202,124 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
                       calendarBuilders: CalendarBuilders(
                         markerBuilder: (context, day, events) {
                           if (events.isEmpty) return null;
+                          
+                          // Compter les différents types de réservations
+                          int slotCount = 0;
+                          int morningCount = 0;
+                          int afternoonCount = 0;
+                          int fullDayCount = 0;
                           final hasPending = events.any((appointment) =>
-                              (appointment).status ==
-                              AppointmentStatus.pending);
+                              appointment.status == AppointmentStatus.pending);
+                          
+                          for (var appointment in events) {
+                            switch (appointment.type) {
+                              case AppointmentType.slot:
+                                slotCount++;
+                                break;
+                              case AppointmentType.morning:
+                                morningCount++;
+                                break;
+                              case AppointmentType.afternoon:
+                                afternoonCount++;
+                                break;
+                              case AppointmentType.fullDay:
+                                fullDayCount++;
+                                break;
+                            }
+                          }
+                          
+                          List<Widget> markers = [];
+                          
+                          // Ajouter des marqueurs pour chaque type de réservation
+                          if (fullDayCount > 0) {
+                            markers.add(
+                              Container(
+                                width: 20,
+                                height: 20,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.rectangle,
+                                  color: Colors.red,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    fullDayCount.toString(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                          
+                          if (morningCount > 0) {
+                            markers.add(
+                              Container(
+                                width: 16,
+                                height: 16,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.rectangle,
+                                  color: Colors.orange,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    morningCount.toString(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                          
+                          if (afternoonCount > 0) {
+                            markers.add(
+                              Container(
+                                width: 16,
+                                height: 16,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.rectangle,
+                                  color: Colors.blue,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    afternoonCount.toString(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                          
+                          if (slotCount > 0) {
+                            markers.add(
+                              Container(
+                                width: 7,
+                                height: 7,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: hasPending ? Colors.red : Colors.blueAccent,
+                                ),
+                              ),
+                            );
+                          }
+                          
                           return Positioned(
                             left: 0,
                             right: 0,
                             bottom: 5,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  width: 7,
-                                  height: 7,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: hasPending
-                                        ? Colors.red
-                                        : Colors.blueAccent,
-                                  ),
-                                ),
-                              ],
+                              children: markers,
                             ),
                           );
                         },
@@ -319,71 +415,171 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
 
   List<Widget> _buildAppointmentItems(
       List<AppointmentModel> appointments, double hourHeight, int startHour) {
-    return appointments.map((appointment) {
+    List<Widget> items = [];
+    
+    for (var appointment in appointments) {
       final localDateTime =
           tz.TZDateTime.from(appointment.dateTime, _location!);
-      final double top = ((localDateTime.hour - startHour) * hourHeight) +
-          (localDateTime.minute / 60.0 * hourHeight);
-      final double height = (appointment.duration / 60.0) * hourHeight;
-      final client = _clientDetails[appointment.clientId];
-      final service = _serviceDetails[appointment.serviceId];
-      final cardColor = appointment.status == AppointmentStatus.pending
-          ? Colors.red.withOpacity(0.8)
-          : Theme.of(context).primaryColor.withOpacity(0.8);
-
-      return Positioned(
-        top: top,
-        left: 70.0,
-        right: 0,
-        height: height,
-        child: GestureDetector(
-          onTap: () => _showAppointmentDetails(appointment),
-          child: Card(
-            color: cardColor,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            client?.name ?? client?.email ?? 'Client inconnu',
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 20.0),
-                        Expanded(
-                          child: Text(
-                            service?.name ?? 'Service inconnu',
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontStyle: FontStyle.italic),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4.0),
-                    Text(
-                      '${DateFormat.Hm('fr_FR').format(localDateTime)} - ${DateFormat.Hm('fr_FR').format(localDateTime.add(Duration(minutes: appointment.duration)))}',
-                      style:
-                          const TextStyle(color: Colors.white, fontSize: 12),
-                    ),
-                  ],
+      
+      // Pour les réservations de type journée entière, matin ou après-midi,
+      // nous affichons un indicateur spécial
+      if (appointment.type == AppointmentType.fullDay || 
+          appointment.type == AppointmentType.morning || 
+          appointment.type == AppointmentType.afternoon) {
+        
+        String periodText = '';
+        double top = 0;
+        double height = 0;
+        
+        switch (appointment.type) {
+          case AppointmentType.morning:
+            periodText = 'Matin (8h-12h)';
+            top = (8 - startHour) * hourHeight;
+            height = 4 * hourHeight;
+            break;
+          case AppointmentType.afternoon:
+            periodText = 'Après-midi (13h-19h)';
+            top = (13 - startHour) * hourHeight;
+            height = 6 * hourHeight;
+            break;
+          case AppointmentType.fullDay:
+            periodText = 'Journée entière';
+            top = (8 - startHour) * hourHeight;
+            height = 11 * hourHeight;
+            break;
+          default:
+            periodText = '';
+            top = ((localDateTime.hour - startHour) * hourHeight) +
+                (localDateTime.minute / 60.0 * hourHeight);
+            height = (appointment.duration / 60.0) * hourHeight;
+        }
+        
+        final client = _clientDetails[appointment.clientId];
+        final service = _serviceDetails[appointment.serviceId];
+        final cardColor = appointment.status == AppointmentStatus.pending
+            ? Colors.red.withOpacity(0.8)
+            : Theme.of(context).primaryColor.withOpacity(0.8);
+        
+        items.add(
+          Positioned(
+            top: top,
+            left: 70.0,
+            right: 0,
+            height: height,
+            child: GestureDetector(
+              onTap: () => _showAppointmentDetails(appointment),
+              child: Card(
+                color: cardColor,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        client?.name ?? client?.email ?? 'Client inconnu',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4.0),
+                      Text(
+                        service?.name ?? 'Service inconnu',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4.0),
+                      Text(
+                        periodText,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4.0),
+                      Text(
+                        'Statut: ${appointment.status.toString().split('.').last}',
+                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      );
-    }).toList();
+        );
+      } else {
+        // Pour les créneaux standards
+        final double top = ((localDateTime.hour - startHour) * hourHeight) +
+            (localDateTime.minute / 60.0 * hourHeight);
+        final double height = (appointment.duration / 60.0) * hourHeight;
+        final client = _clientDetails[appointment.clientId];
+        final service = _serviceDetails[appointment.serviceId];
+        final cardColor = appointment.status == AppointmentStatus.pending
+            ? Colors.red.withOpacity(0.8)
+            : Theme.of(context).primaryColor.withOpacity(0.8);
+
+        items.add(
+          Positioned(
+            top: top,
+            left: 70.0,
+            right: 0,
+            height: height,
+            child: GestureDetector(
+              onTap: () => _showAppointmentDetails(appointment),
+              child: Card(
+                color: cardColor,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                client?.name ?? client?.email ?? 'Client inconnu',
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 20.0),
+                            Expanded(
+                              child: Text(
+                                service?.name ?? 'Service inconnu',
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontStyle: FontStyle.italic),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4.0),
+                        Text(
+                          '${DateFormat.Hm('fr_FR').format(localDateTime)} - ${DateFormat.Hm('fr_FR').format(localDateTime.add(Duration(minutes: appointment.duration)))}',
+                          style:
+                              const TextStyle(color: Colors.white, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+    }
+    
+    return items;
   }
 
   Widget _buildCurrentTimeIndicator(double hourHeight, int startHour) {
@@ -443,6 +639,8 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
                 Text(
                     'Date: ${DateFormat.yMMMMd('fr_FR').format(localDateTime)}'),
                 Text('Heure: ${DateFormat.Hm('fr_FR').format(localDateTime)}'),
+                if (appointment.type != AppointmentType.slot)
+                  Text('Période: ${_getPeriodText(appointment.type)}'),
                 Text('Durée: ${appointment.duration} minutes'),
                 Text(
                     'Statut: ${appointment.status.toString().split('.').last}'),
@@ -476,6 +674,19 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
         );
       },
     );
+  }
+
+  String _getPeriodText(AppointmentType type) {
+    switch (type) {
+      case AppointmentType.morning:
+        return 'Matin (8h-12h)';
+      case AppointmentType.afternoon:
+        return 'Après-midi (13h-19h)';
+      case AppointmentType.fullDay:
+        return 'Journée entière';
+      default:
+        return '';
+    }
   }
 
   Future<void> _updateAppointmentStatus(
@@ -540,6 +751,7 @@ class TimelinePainter extends CustomPainter {
 extension AppointmentModelCopy on AppointmentModel {
   AppointmentModel copyWith({
     AppointmentStatus? status,
+    AppointmentType? type,
     DateTime? updatedAt,
   }) {
     return AppointmentModel(
@@ -550,6 +762,7 @@ extension AppointmentModelCopy on AppointmentModel {
       dateTime: dateTime,
       duration: duration,
       status: status ?? this.status,
+      type: type ?? this.type,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

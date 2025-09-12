@@ -1,4 +1,3 @@
-import 'package:coconut_agencement/widgets/fade_route.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -134,13 +133,105 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
             calendarBuilders: CalendarBuilders(
               markerBuilder: (context, day, events) {
                 if (events.isEmpty) return null;
-                return Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 4,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: events.map((appointment) {
+                
+                // Compter les différents types de réservations
+                int slotCount = 0;
+                int morningCount = 0;
+                int afternoonCount = 0;
+                int fullDayCount = 0;
+                
+                for (var appointment in events) {
+                  switch (appointment.type) {
+                    case AppointmentType.slot:
+                      slotCount++;
+                      break;
+                    case AppointmentType.morning:
+                      morningCount++;
+                      break;
+                    case AppointmentType.afternoon:
+                      afternoonCount++;
+                      break;
+                    case AppointmentType.fullDay:
+                      fullDayCount++;
+                      break;
+                  }
+                }
+                
+                List<Widget> markers = [];
+                
+                // Ajouter des marqueurs pour chaque type de réservation
+                if (fullDayCount > 0) {
+                  markers.add(
+                    Container(
+                      width: 20,
+                      height: 20,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.rectangle,
+                        color: Colors.red,
+                      ),
+                      child: Center(
+                        child: Text(
+                          fullDayCount.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+                
+                if (morningCount > 0) {
+                  markers.add(
+                    Container(
+                      width: 16,
+                      height: 16,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.rectangle,
+                        color: Colors.orange,
+                      ),
+                      child: Center(
+                        child: Text(
+                          morningCount.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 8,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+                
+                if (afternoonCount > 0) {
+                  markers.add(
+                    Container(
+                      width: 16,
+                      height: 16,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.rectangle,
+                        color: Colors.blue,
+                      ),
+                      child: Center(
+                        child: Text(
+                          afternoonCount.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 8,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+                
+                if (slotCount > 0) {
+                  markers.addAll(
+                    events.where((appointment) => appointment.type == AppointmentType.slot).map((appointment) {
                       return Container(
                         width: 7,
                         height: 7,
@@ -151,6 +242,16 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
                         ),
                       );
                     }).toList(),
+                  );
+                }
+                
+                return Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 4,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: markers,
                   ),
                 );
               },
@@ -174,6 +275,6 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
         return Colors.red;
       case AppointmentStatus.pending:
         return Colors.orange;
-      }
+    }
   }
 }

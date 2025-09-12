@@ -2,6 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum AppointmentStatus { pending, confirmed, rejected }
 
+// Type de réservation
+enum AppointmentType { slot, morning, afternoon, fullDay }
+
 class AppointmentModel {
   final String id;
   final String clientId;
@@ -10,6 +13,7 @@ class AppointmentModel {
   final DateTime dateTime;
   final int duration; // Durée en minutes
   final AppointmentStatus status;
+  final AppointmentType type; // Type de réservation
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -21,6 +25,7 @@ class AppointmentModel {
     required this.dateTime,
     required this.duration,
     required this.status,
+    this.type = AppointmentType.slot, // Par défaut, c'est un créneau standard
     required this.createdAt,
     this.updatedAt,
   });
@@ -35,6 +40,7 @@ class AppointmentModel {
       dateTime: (data['dateTime'] as Timestamp).toDate(),
       duration: data['duration'] ?? 0,
       status: _statusFromString(data['status'] ?? ''),
+      type: _typeFromString(data['type'] ?? 'slot'),
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       updatedAt: data['updatedAt'] != null
           ? (data['updatedAt'] as Timestamp).toDate()
@@ -51,6 +57,7 @@ class AppointmentModel {
       'dateTime': Timestamp.fromDate(dateTime),
       'duration': duration,
       'status': _statusToString(status),
+      'type': _typeToString(type),
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
     };
@@ -77,6 +84,34 @@ class AppointmentModel {
         return 'rejected';
       default:
         return 'pending';
+    }
+  }
+
+  // Convertir une chaîne en AppointmentType
+  static AppointmentType _typeFromString(String type) {
+    switch (type) {
+      case 'morning':
+        return AppointmentType.morning;
+      case 'afternoon':
+        return AppointmentType.afternoon;
+      case 'fullDay':
+        return AppointmentType.fullDay;
+      default:
+        return AppointmentType.slot;
+    }
+  }
+
+  // Convertir un AppointmentType en chaîne
+  static String _typeToString(AppointmentType type) {
+    switch (type) {
+      case AppointmentType.morning:
+        return 'morning';
+      case AppointmentType.afternoon:
+        return 'afternoon';
+      case AppointmentType.fullDay:
+        return 'fullDay';
+      default:
+        return 'slot';
     }
   }
 }
