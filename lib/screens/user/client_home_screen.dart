@@ -2,6 +2,7 @@ import 'package:coconut_agencement/services/appointment_service.dart';
 import 'package:coconut_agencement/services/user_service.dart';
 import 'package:coconut_agencement/widgets/fade_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import 'appointment_history_screen.dart';
@@ -18,6 +19,19 @@ class ClientHomeScreen extends StatefulWidget {
 
 class _ClientHomeScreenState extends State<ClientHomeScreen> {
   int _selectedIndex = 0;
+  late final AdvancedDrawerController _advancedDrawerController;
+
+  @override
+  void initState() {
+    super.initState();
+    _advancedDrawerController = AdvancedDrawerController();
+  }
+
+  @override
+  void dispose() {
+    _advancedDrawerController.dispose();
+    super.dispose();
+  }
 
   // Écrans pour le client
   static const List<Widget> _clientScreens = [
@@ -142,21 +156,26 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_clientTitles[_selectedIndex]),
-        leading: Builder(
-          builder: (BuildContext context) {
-            return IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
-              },
-            );
-          },
-        ),
+    return AdvancedDrawer(
+      openRatio: 0.6,
+      controller: _advancedDrawerController,
+      animationCurve: Curves.easeInOut,
+      animationDuration: const Duration(milliseconds: 300),
+      animateChildDecoration: true,
+      rtlOpening: false,
+      disabledGestures: false,
+      childDecoration: const BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 10.0,
+            spreadRadius: 5.0,
+            offset: Offset(5.0, 5.0),
+          ),
+        ],
+        borderRadius: BorderRadius.all(Radius.circular(16)),
       ),
-      drawer: Drawer(
+      drawer: SafeArea(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
@@ -177,7 +196,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
               leading: const Icon(Icons.delete),
               title: const Text('Supprimer mon compte'),
               onTap: () {
-                Navigator.pop(context);
+                _advancedDrawerController.hideDrawer();
                 _deleteAccount();
               },
             ),
@@ -185,7 +204,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
               leading: const Icon(Icons.lock),
               title: const Text('Modifier mon mot de passe'),
               onTap: () {
-                Navigator.pop(context);
+                _advancedDrawerController.hideDrawer();
                 _changePassword();
               },
             ),
@@ -193,28 +212,48 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
               leading: const Icon(Icons.logout),
               title: const Text('Déconnexion'),
               onTap: () {
-                Navigator.pop(context);
+                _advancedDrawerController.hideDrawer();
                 _signOut();
               },
             ),
           ],
         ),
       ),
-      body: _clientScreens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_circle_outline),
-            label: 'Prendre RDV',
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(_clientTitles[_selectedIndex]),
+          leading: IconButton(
+            onPressed: _advancedDrawerController.showDrawer,
+            icon: ValueListenableBuilder<AdvancedDrawerValue>(
+              valueListenable: _advancedDrawerController,
+              builder: (_, value, __) {
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  child: Icon(
+                    value.visible ? Icons.clear : Icons.menu,
+                    key: ValueKey<bool>(value.visible),
+                  ),
+                );
+              },
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'Rendez-vous',
-          ),
-        ],
+        ),
+        body: _clientScreens[_selectedIndex],
+        bottomNavigationBar: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.add_circle_outline),
+              label: 'Prendre RDV',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.history),
+              label: 'Rendez-vous',
+            ),
+          ],
+        ),
       ),
     );
   }

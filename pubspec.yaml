@@ -46,6 +46,7 @@ dependencies:
   timeline_tile: ^2.0.0
   another_flushbar: ^1.12.32
   timezone: ^0.10.1
+  flutter_advanced_drawer: ^1.0.0
 
 dev_dependencies:
   flutter_test:
