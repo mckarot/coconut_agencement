@@ -366,7 +366,7 @@ class _ArtisanTimeSlotScreenState extends State<ArtisanTimeSlotScreen> {
               children: [
                 const TextSpan(text: 'Créer un rendez-vous pour le service '),
                 TextSpan(
-                  text: '\"${widget.selectedService.name}\"',
+                  text: '"${widget.selectedService.name}"',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const TextSpan(text: ' le '),
@@ -442,7 +442,7 @@ class _ArtisanTimeSlotScreenState extends State<ArtisanTimeSlotScreen> {
               children: [
                 const TextSpan(text: 'Créer un rendez-vous pour le service '),
                 TextSpan(
-                  text: '\"${widget.selectedService.name}\"',
+                  text: '"${widget.selectedService.name}"',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const TextSpan(text: ' le '),
@@ -527,10 +527,12 @@ class _ArtisanTimeSlotScreenState extends State<ArtisanTimeSlotScreen> {
       final notificationProvider =
           Provider.of<NotificationProvider>(context, listen: false);
       await notificationProvider.notifyClientOfAppointmentStatus(
-        clientId: widget.clientId,
+        clientEmail: client?.email ?? '', // Email du client
         artisanName: 'Vous', // On pourrait récupérer le nom de l'artisan
         appointmentDate: appointmentDateTime,
+        serviceName: widget.selectedService.name,
         isConfirmed: true,
+        clientName: client?.name, // Nom du client (optionnel)
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -629,10 +631,12 @@ class _ArtisanTimeSlotScreenState extends State<ArtisanTimeSlotScreen> {
       final notificationProvider =
           Provider.of<NotificationProvider>(context, listen: false);
       await notificationProvider.notifyClientOfAppointmentStatus(
-        clientId: widget.clientId,
+        clientEmail: client?.email ?? '', // Email du client
         artisanName: 'Vous', // On pourrait récupérer le nom de l'artisan
         appointmentDate: appointmentDateTime,
+        serviceName: widget.selectedService.name,
         isConfirmed: true,
+        clientName: client?.name, // Nom du client (optionnel)
       );
 
       ScaffoldMessenger.of(context).showSnackBar(

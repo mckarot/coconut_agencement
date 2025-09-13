@@ -97,6 +97,8 @@ class _PendingAppointmentsScreenState extends State<PendingAppointmentsScreen> {
       final notificationProvider =
           Provider.of<NotificationProvider>(context, listen: false);
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final serviceProvider =
+          Provider.of<ServiceProvider>(context, listen: false);
 
       final updatedAppointment = appointment.copyWith(
         status: status,
@@ -109,11 +111,16 @@ class _PendingAppointmentsScreenState extends State<PendingAppointmentsScreen> {
       final artisan = await userProvider.getUserById(authProvider.userId!);
       final artisanName = artisan?.name ?? artisan?.email ?? 'Artisan';
 
+      final client = await userProvider.getUserById(appointment.clientId);
+      final service = await serviceProvider.getServiceById(appointment.serviceId);
+      
       await notificationProvider.notifyClientOfAppointmentStatus(
-        clientId: appointment.clientId,
+        clientEmail: client?.email ?? '', // Email du client
         artisanName: artisanName,
         appointmentDate: appointment.dateTime,
+        serviceName: service?.name ?? 'Service inconnu',
         isConfirmed: status == AppointmentStatus.confirmed,
+        clientName: client?.name, // Nom du client (optionnel)
       );
 
       await _loadPendingAppointments();

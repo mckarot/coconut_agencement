@@ -517,12 +517,20 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
       final client = await userProvider.getUserById(authProvider.userId!);
       final clientName = client?.name ?? 'Un client';
 
+      // Envoyer l'email de notification à l'artisan
       final notificationProvider =
           Provider.of<NotificationProvider>(context, listen: false);
+      
+      // Récupérer les informations de l'artisan pour l'envoi de l'email
+      final artisan = await userProvider.getUserById(widget.artisanId);
+      
       await notificationProvider.notifyArtisanOfNewAppointment(
-        artisanId: widget.artisanId,
+        artisanEmail: artisan?.email ?? '', // Email de l'artisan
         clientName: clientName,
         appointmentDate: appointmentDateTime,
+        serviceName: widget.selectedService.name,
+        clientEmail: client?.email, // Email du client (pour reply-to)
+        artisanName: artisan?.name, // Nom de l'artisan
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -613,12 +621,20 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
       final client = await userProvider.getUserById(authProvider.userId!);
       final clientName = client?.name ?? 'Un client';
 
+      // Envoyer l'email de notification à l'artisan
       final notificationProvider =
           Provider.of<NotificationProvider>(context, listen: false);
+      
+      // Récupérer les informations de l'artisan pour l'envoi de l'email
+      final artisan = await userProvider.getUserById(widget.artisanId);
+      
       await notificationProvider.notifyArtisanOfNewAppointment(
-        artisanId: widget.artisanId,
+        artisanEmail: artisan?.email ?? '', // Email de l'artisan
         clientName: clientName,
         appointmentDate: appointmentDateTime,
+        serviceName: widget.selectedService.name,
+        clientEmail: client?.email, // Email du client (pour reply-to)
+        artisanName: artisan?.name, // Nom de l'artisan
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
