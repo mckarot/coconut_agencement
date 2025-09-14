@@ -57,25 +57,38 @@ class AppointmentService {
 
   // Créer un nouveau rendez-vous
   Future<String> createAppointment(AppointmentModel appointment) async {
+    print('=== AppointmentService.createAppointment called ===');
+    print('Appointment data: ${appointment.toMap()}');
     try {
       // Vérifier les chevauchements
+      print('Checking for overlaps...');
       final artisanAppointments = await getArtisanAppointments(appointment.artisanId);
+      print('Found ${artisanAppointments.length} existing appointments for artisan ${appointment.artisanId}');
       final newAppointmentStart = appointment.dateTime;
       // final newAppointmentEnd = newAppointmentStart.add(Duration(minutes: appointment.duration));
 
       for (final existingAppointment in artisanAppointments) {
         if (DateUtils.isSameDay(existingAppointment.dateTime, newAppointmentStart)) {
+          print('Checking overlap with existing appointment: ${existingAppointment.toMap()}');
           // Vérifier les chevauchements selon le type de réservation
           if (_hasOverlap(appointment, existingAppointment)) {
+            print('Overlap detected!');
             throw Exception('Le créneau horaire est déjà pris.');
           }
         }
       }
+      print('No overlaps found.');
 
+      print('Adding appointment to Firestore...');
       DocumentReference docRef =
           await _firestore.collection(_collection).add(appointment.toMap());
+      print('Appointment added with ID: ${docRef.id}');
       return docRef.id;
-    } catch (e) {
+    } catch (e, s) {
+      print('=== ERROR in AppointmentService.createAppointment ===');
+      print('Exception: $e');
+      print('Stack trace: $s');
+      print('====================================================');
       throw Exception('Erreur lors de la création du rendez-vous: $e');
     }
   }

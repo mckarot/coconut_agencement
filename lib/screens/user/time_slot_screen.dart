@@ -479,8 +479,10 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
   }
 
   Future<void> _bookAppointmentForSlot(TimeOfDay time) async {
+    print('=== _bookAppointmentForSlot called with time: $time ===');
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     if (authProvider.userId == null) {
+      print('User not authenticated');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('Vous devez être connecté pour réserver.')),
@@ -509,20 +511,26 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
     );
 
     try {
+      print('Creating appointment...');
       final appointmentProvider =
           Provider.of<AppointmentProvider>(context, listen: false);
       await appointmentProvider.createAppointment(appointment);
+      print('Appointment created successfully.');
 
+      print('Fetching user details...');
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       final client = await userProvider.getUserById(authProvider.userId!);
       final clientName = client?.name ?? 'Un client';
+      print('Client name: $clientName');
 
       // Envoyer l'email de notification à l'artisan
+      print('Sending notification to artisan...');
       final notificationProvider =
           Provider.of<NotificationProvider>(context, listen: false);
       
       // Récupérer les informations de l'artisan pour l'envoi de l'email
       final artisan = await userProvider.getUserById(widget.artisanId);
+      print('Artisan email: ${artisan?.email}, name: ${artisan?.name}');
       
       await notificationProvider.notifyArtisanOfNewAppointment(
         artisanEmail: artisan?.email ?? '', // Email de l'artisan
@@ -532,12 +540,17 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
         clientEmail: client?.email, // Email du client (pour reply-to)
         artisanName: artisan?.name, // Nom de l'artisan
       );
+      print('Notification sent.');
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Demande de rendez-vous envoyée.')),
       );
       Navigator.of(context).popUntil(ModalRoute.withName('/client-home'));
-    } catch (e) {
+    } catch (e, s) {
+      print('=== ERROR in _bookAppointmentForSlot ===');
+      print('Exception: $e');
+      print('Stack trace: $s');
+      print('=====================================');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur lors de la réservation: $e')),
       );
@@ -545,8 +558,10 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
   }
 
   Future<void> _bookAppointmentForPeriod(AppointmentType type) async {
+    print('=== _bookAppointmentForPeriod called with type: $type ===');
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     if (authProvider.userId == null) {
+      print('User not authenticated');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('Vous devez être connecté pour réserver.')),
@@ -613,20 +628,26 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
     );
 
     try {
+      print('Creating appointment for period...');
       final appointmentProvider =
           Provider.of<AppointmentProvider>(context, listen: false);
       await appointmentProvider.createAppointment(appointment);
+      print('Appointment for period created successfully.');
 
+      print('Fetching user details for period booking...');
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       final client = await userProvider.getUserById(authProvider.userId!);
       final clientName = client?.name ?? 'Un client';
+      print('Client name for period booking: $clientName');
 
       // Envoyer l'email de notification à l'artisan
+      print('Sending notification to artisan for period booking...');
       final notificationProvider =
           Provider.of<NotificationProvider>(context, listen: false);
       
       // Récupérer les informations de l'artisan pour l'envoi de l'email
       final artisan = await userProvider.getUserById(widget.artisanId);
+      print('Artisan email for period booking: ${artisan?.email}, name: ${artisan?.name}');
       
       await notificationProvider.notifyArtisanOfNewAppointment(
         artisanEmail: artisan?.email ?? '', // Email de l'artisan
@@ -636,12 +657,17 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
         clientEmail: client?.email, // Email du client (pour reply-to)
         artisanName: artisan?.name, // Nom de l'artisan
       );
+      print('Notification for period booking sent.');
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Demande de rendez-vous envoyée.')),
       );
       Navigator.of(context).popUntil(ModalRoute.withName('/client-home'));
-    } catch (e) {
+    } catch (e, s) {
+      print('=== ERROR in _bookAppointmentForPeriod ===');
+      print('Exception: $e');
+      print('Stack trace: $s');
+      print('=====================================');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur lors de la réservation: $e')),
       );
