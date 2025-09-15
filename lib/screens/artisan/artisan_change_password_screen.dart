@@ -91,7 +91,7 @@ class _ArtisanChangePasswordScreenState extends State<ArtisanChangePasswordScree
           },
         ),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,

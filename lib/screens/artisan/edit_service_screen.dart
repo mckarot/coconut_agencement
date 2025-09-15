@@ -140,7 +140,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
           ),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,

@@ -41,7 +41,7 @@ dependencies:
   provider: ^6.1.2
   table_calendar: ^3.2.0
   firebase_messaging: ^16.0.1
-  flutter_local_notifications: ^19.4.1
+  
   video_player: ^2.8.6
   timeline_tile: ^2.0.0
   another_flushbar: ^1.12.32

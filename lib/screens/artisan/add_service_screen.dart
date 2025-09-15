@@ -72,7 +72,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
       appBar: AppBar(
         title: const Text('Ajouter un service'),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,

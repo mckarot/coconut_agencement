@@ -1,7 +1,6 @@
 import 'package:coconut_agencement/firebase_options.dart';
 import 'package:coconut_agencement/screens/user/client_home_screen.dart';
 import 'package:coconut_agencement/screens/artisan/home_screen.dart';
-import 'package:coconut_agencement/services/local_notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:coconut_agencement/services/navigator_service.dart';
 import 'package:flutter/material.dart';
@@ -22,9 +21,6 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await initializeDateFormatting('fr_FR', null);
-
-  // Initialiser le service de notifications locales
-  await LocalNotificationService().init();
 
   runApp(
     MultiProvider(
