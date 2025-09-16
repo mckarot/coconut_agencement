@@ -1,5 +1,6 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../services/logger_service.dart';
 
 class EmailService {
   static final FirebaseFunctions _functions = FirebaseFunctions.instance;
@@ -32,9 +33,9 @@ class EmailService {
         'artisanName': artisanName,
       });
 
-      print('Email de demande de rendez-vous envoyé avec succès');
+      LoggerService.info('Email de demande de rendez-vous envoyé avec succès');
     } catch (e) {
-      print('Erreur lors de l\'envoi de l\'email de demande: $e');
+      LoggerService.error('Erreur lors de l\'envoi de l\'email de demande: $e');
       rethrow;
     }
   }
@@ -67,9 +68,9 @@ class EmailService {
         'clientName': clientName,
       });
 
-      print('Email de statut de rendez-vous envoyé avec succès');
+      LoggerService.info('Email de statut de rendez-vous envoyé avec succès');
     } catch (e) {
-      print('Erreur lors de l\'envoi de l\'email de statut: $e');
+      LoggerService.error('Erreur lors de l\'envoi de l\'email de statut: $e');
       rethrow;
     }
   }

@@ -45,7 +45,7 @@ class _ArtisanTimeSlotScreenState extends State<ArtisanTimeSlotScreen> {
             end: Alignment.bottomRight,
             colors: [
               theme.colorScheme.surface,
-              theme.colorScheme.surface.withOpacity(0.9),
+              theme.colorScheme.surface.withValues(alpha: 0.9),
             ],
           ),
         ),
@@ -117,7 +117,7 @@ class _ArtisanTimeSlotScreenState extends State<ArtisanTimeSlotScreen> {
                   ? theme.colorScheme.surfaceContainerHighest
                   : theme.colorScheme.primary,
               foregroundColor: isSunday || isMorningBooked
-                  ? theme.colorScheme.onSurface.withOpacity(0.5)
+                  ? theme.colorScheme.onSurface.withValues(alpha: 0.5)
                   : theme.colorScheme.onPrimary,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
@@ -147,7 +147,7 @@ class _ArtisanTimeSlotScreenState extends State<ArtisanTimeSlotScreen> {
                   ? theme.colorScheme.surfaceContainerHighest
                   : theme.colorScheme.primary,
               foregroundColor: isSunday || isAfternoonBooked
-                  ? theme.colorScheme.onSurface.withOpacity(0.5)
+                  ? theme.colorScheme.onSurface.withValues(alpha: 0.5)
                   : theme.colorScheme.onPrimary,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
@@ -177,7 +177,7 @@ class _ArtisanTimeSlotScreenState extends State<ArtisanTimeSlotScreen> {
                   ? theme.colorScheme.surfaceContainerHighest
                   : Colors.orangeAccent,
               foregroundColor: isSunday || isFullDayBooked
-                  ? theme.colorScheme.onSurface.withOpacity(0.5)
+                  ? theme.colorScheme.onSurface.withValues(alpha: 0.5)
                   : Colors.black,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
@@ -487,6 +487,7 @@ class _ArtisanTimeSlotScreenState extends State<ArtisanTimeSlotScreen> {
     final artisanId = authProvider.userId;
     
     if (artisanId == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('Erreur: Artisan non identifié')),
@@ -519,11 +520,13 @@ class _ArtisanTimeSlotScreenState extends State<ArtisanTimeSlotScreen> {
           Provider.of<AppointmentProvider>(context, listen: false);
       await appointmentProvider.createAppointment(appointment);
 
+      if (!mounted) return;
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       // ignore: unused_local_variable
       final client = await userProvider.getUserById(widget.clientId);
       // final clientName = client?.name ?? 'Un client';
 
+      if (!mounted) return;
       final notificationProvider =
           Provider.of<NotificationProvider>(context, listen: false);
       await notificationProvider.notifyClientOfAppointmentStatus(
@@ -535,13 +538,16 @@ class _ArtisanTimeSlotScreenState extends State<ArtisanTimeSlotScreen> {
         clientName: client?.name, // Nom du client (optionnel)
       );
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Rendez-vous créé avec succès.')),
       );
       
       // Retour à l'écran d'accueil de l'artisan
+      if (!mounted) return;
       Navigator.of(context).popUntil(ModalRoute.withName('/home'));
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur lors de la création: $e')),
       );
@@ -553,6 +559,7 @@ class _ArtisanTimeSlotScreenState extends State<ArtisanTimeSlotScreen> {
     final artisanId = authProvider.userId;
     
     if (artisanId == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('Erreur: Artisan non identifié')),
@@ -623,11 +630,13 @@ class _ArtisanTimeSlotScreenState extends State<ArtisanTimeSlotScreen> {
           Provider.of<AppointmentProvider>(context, listen: false);
       await appointmentProvider.createAppointment(appointment);
 
+      if (!mounted) return;
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       // ignore: unused_local_variable
       final client = await userProvider.getUserById(widget.clientId);
       // final clientName = client?.name ?? 'Un client';
 
+      if (!mounted) return;
       final notificationProvider =
           Provider.of<NotificationProvider>(context, listen: false);
       await notificationProvider.notifyClientOfAppointmentStatus(
@@ -639,13 +648,16 @@ class _ArtisanTimeSlotScreenState extends State<ArtisanTimeSlotScreen> {
         clientName: client?.name, // Nom du client (optionnel)
       );
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Rendez-vous créé avec succès.')),
       );
       
       // Retour à l'écran d'accueil de l'artisan
+      if (!mounted) return;
       Navigator.of(context).popUntil(ModalRoute.withName('/home'));
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur lors de la création: $e')),
       );

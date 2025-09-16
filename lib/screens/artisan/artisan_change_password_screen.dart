@@ -38,6 +38,7 @@ class _ArtisanChangePasswordScreenState extends State<ArtisanChangePasswordScree
       
       // Vérifier que les nouveaux mots de passe correspondent
       if (_newPasswordController.text != _confirmPasswordController.text) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Les nouveaux mots de passe ne correspondent pas'),
@@ -53,6 +54,7 @@ class _ArtisanChangePasswordScreenState extends State<ArtisanChangePasswordScree
         _newPasswordController.text,
       );
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Mot de passe modifié avec succès'),
@@ -61,11 +63,13 @@ class _ArtisanChangePasswordScreenState extends State<ArtisanChangePasswordScree
       );
 
       // Retourner à l'écran d'accueil de l'artisan
+      if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         FadeRoute(page: const HomeScreen()),
         (Route<dynamic> route) => false,
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur lors du changement de mot de passe: $e'),
@@ -73,6 +77,7 @@ class _ArtisanChangePasswordScreenState extends State<ArtisanChangePasswordScree
         ),
       );
     } finally {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });

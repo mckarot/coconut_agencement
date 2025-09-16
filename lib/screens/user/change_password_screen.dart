@@ -38,6 +38,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       
       // Vérifier que les nouveaux mots de passe correspondent
       if (_newPasswordController.text != _confirmPasswordController.text) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Les nouveaux mots de passe ne correspondent pas'),
@@ -53,6 +54,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         _newPasswordController.text,
       );
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Mot de passe modifié avec succès'),
@@ -61,11 +63,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       );
 
       // Retourner à l'écran d'accueil
+      if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         FadeRoute(page: const ClientHomeScreen()),
         (Route<dynamic> route) => false,
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur lors du changement de mot de passe: $e'),
@@ -73,6 +77,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         ),
       );
     } finally {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });

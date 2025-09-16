@@ -457,8 +457,8 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
         final client = _clientDetails[appointment.clientId];
         final service = _serviceDetails[appointment.serviceId];
         final cardColor = appointment.status == AppointmentStatus.pending
-            ? Colors.red.withOpacity(0.8)
-            : Theme.of(context).primaryColor.withOpacity(0.8);
+            ? Colors.red.withValues(alpha: 0.8)
+            : Theme.of(context).primaryColor.withValues(alpha: 0.8);
         
         items.add(
           Positioned(
@@ -519,8 +519,8 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
         final client = _clientDetails[appointment.clientId];
         final service = _serviceDetails[appointment.serviceId];
         final cardColor = appointment.status == AppointmentStatus.pending
-            ? Colors.red.withOpacity(0.8)
-            : Theme.of(context).primaryColor.withOpacity(0.8);
+            ? Colors.red.withValues(alpha: 0.8)
+            : Theme.of(context).primaryColor.withValues(alpha: 0.8);
 
         items.add(
           Positioned(

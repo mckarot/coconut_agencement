@@ -40,7 +40,7 @@ class _GuestTimeSlotScreenState extends State<GuestTimeSlotScreen> {
             end: Alignment.bottomRight,
             colors: [
               theme.colorScheme.surface,
-              theme.colorScheme.surface.withOpacity(0.9),
+              theme.colorScheme.surface.withValues(alpha: 0.9),
             ],
           ),
         ),
@@ -117,7 +117,7 @@ class _GuestTimeSlotScreenState extends State<GuestTimeSlotScreen> {
             style: TextStyle(
               color: isEnabled
                   ? theme.colorScheme.onPrimary
-                  : theme.colorScheme.onSurface.withOpacity(0.5),
+                  : theme.colorScheme.onSurface.withValues(alpha: 0.5),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -127,7 +127,7 @@ class _GuestTimeSlotScreenState extends State<GuestTimeSlotScreen> {
               ? theme.colorScheme.primary
               : theme.colorScheme.surfaceContainerHighest,
           disabledColor:
-              theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+              theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8.0),
             side: BorderSide(

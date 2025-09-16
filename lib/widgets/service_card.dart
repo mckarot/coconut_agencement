@@ -52,7 +52,7 @@ class ServiceCard extends StatelessWidget {
         onTap: onTap,
         selected: isSelected,
         selectedTileColor:
-            Theme.of(context).primaryColor.withOpacity(0.08),
+            Theme.of(context).primaryColor.withValues(alpha: 0.08),
       ),
     );
   }

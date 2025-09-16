@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../services/user_service.dart';
+import '../services/logger_service.dart';
 
 class UserProvider with ChangeNotifier {
   final UserService _userService = UserService();
@@ -32,14 +33,14 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      print('Loading user with ID: $userId');
+      LoggerService.debug('Loading user with ID: $userId');
       _user = await _userService.getUserById(userId);
-      print('User data loaded: $_user');
+      LoggerService.debug('User data loaded: $_user');
       if (_user != null) {
-        print('User role: ${_user!.role}');
+        LoggerService.debug('User role: ${_user!.role}');
       }
     } catch (e) {
-      print('Error loading user: $e');
+      LoggerService.error('Error loading user: $e');
       _error = e.toString();
     } finally {
       _isLoading = false;
@@ -88,7 +89,7 @@ class UserProvider with ChangeNotifier {
     try {
       return await _userService.getUserById(userId);
     } catch (e) {
-      print('Erreur lors de la récupération de l\'utilisateur: $e');
+      LoggerService.error('Erreur lors de la récupération de l\'utilisateur: $e');
       return null;
     }
   }

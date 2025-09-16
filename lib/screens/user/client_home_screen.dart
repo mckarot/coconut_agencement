@@ -97,15 +97,18 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
         // 3. Supprimer le compte d'authentification Firebase
         await authService.deleteAccount();
 
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Compte supprimé avec succès.')),
         );
 
+        if (!mounted) return;
         Navigator.of(context).pushAndRemoveUntil(
           FadeRoute(page: const WelcomeScreen()),
           (Route<dynamic> route) => false,
         );
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text('Erreur lors de la suppression du compte: $e')),
@@ -135,6 +138,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
     );
     if (confirm == true && mounted) {
       await authProvider.signOut();
+      if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         FadeRoute(page: const WelcomeScreen()),
         (Route<dynamic> route) => false,
@@ -143,7 +147,9 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
   }
 
   Future<void> _changePassword() async {
+    if (!mounted) return;
     Navigator.pop(context);
+    if (!mounted) return;
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -226,7 +232,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
             onPressed: _advancedDrawerController.showDrawer,
             icon: ValueListenableBuilder<AdvancedDrawerValue>(
               valueListenable: _advancedDrawerController,
-              builder: (_, value, __) {
+              builder: (_, value, _) {
                 return AnimatedSwitcher(
                   duration: const Duration(milliseconds: 250),
                   child: Icon(

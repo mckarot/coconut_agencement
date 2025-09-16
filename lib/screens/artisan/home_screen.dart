@@ -77,6 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     if (confirm == true && mounted) {
       await authProvider.signOut();
+      if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         FadeRoute(page: const WelcomeScreen()),
         (Route<dynamic> route) => false,
@@ -85,7 +86,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _changePassword() async {
+    if (!mounted) return;
     Navigator.pop(context);
+    if (!mounted) return;
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -192,7 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: _advancedDrawerController.showDrawer,
             icon: ValueListenableBuilder<AdvancedDrawerValue>(
               valueListenable: _advancedDrawerController,
-              builder: (_, value, __) {
+              builder: (_, value, _) {
                 return AnimatedSwitcher(
                   duration: const Duration(milliseconds: 250),
                   child: Icon(

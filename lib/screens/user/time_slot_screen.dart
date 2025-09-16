@@ -7,6 +7,7 @@ import '../../providers/appointment_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/user_provider.dart';
+import '../../services/logger_service.dart';
 
 class TimeSlotScreen extends StatefulWidget {
   final String artisanId;
@@ -45,7 +46,7 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
             end: Alignment.bottomRight,
             colors: [
               theme.colorScheme.surface,
-              theme.colorScheme.surface.withOpacity(0.9),
+              theme.colorScheme.surface.withValues(alpha: 0.9),
             ],
           ),
         ),
@@ -117,7 +118,7 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
                   ? theme.colorScheme.surfaceContainerHighest
                   : theme.colorScheme.primary,
               foregroundColor: isSunday || isMorningBooked
-                  ? theme.colorScheme.onSurface.withOpacity(0.5)
+                  ? theme.colorScheme.onSurface.withValues(alpha: 0.5)
                   : theme.colorScheme.onPrimary,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
@@ -147,7 +148,7 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
                   ? theme.colorScheme.surfaceContainerHighest
                   : theme.colorScheme.primary,
               foregroundColor: isSunday || isAfternoonBooked
-                  ? theme.colorScheme.onSurface.withOpacity(0.5)
+                  ? theme.colorScheme.onSurface.withValues(alpha: 0.5)
                   : theme.colorScheme.onPrimary,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
@@ -173,7 +174,7 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
                   ? theme.colorScheme.surfaceContainerHighest
                   : Colors.orangeAccent,
               foregroundColor: isSunday || isFullDayBooked
-                  ? theme.colorScheme.onSurface.withOpacity(0.5)
+                  ? theme.colorScheme.onSurface.withValues(alpha: 0.5)
                   : Colors.black,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
@@ -225,7 +226,7 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
             style: TextStyle(
               color: isEnabled
                   ? theme.colorScheme.onPrimary
-                  : theme.colorScheme.onSurface.withOpacity(0.5),
+                  : theme.colorScheme.onSurface.withValues(alpha: 0.5),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -234,7 +235,7 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
           backgroundColor: isEnabled
               ? theme.colorScheme.primary
               : theme.colorScheme.surfaceContainerHighest,
-          disabledColor: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+          disabledColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8.0),
             side: BorderSide(
@@ -479,10 +480,10 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
   }
 
   Future<void> _bookAppointmentForSlot(TimeOfDay time) async {
-    print('=== _bookAppointmentForSlot called with time: $time ===');
+    LoggerService.debug('=== _bookAppointmentForSlot called with time: $time ===');
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     if (authProvider.userId == null) {
-      print('User not authenticated');
+      LoggerService.warning('User not authenticated');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('Vous devez être connecté pour réserver.')),
@@ -511,26 +512,26 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
     );
 
     try {
-      print('Creating appointment...');
+      LoggerService.debug('Creating appointment...');
       final appointmentProvider =
           Provider.of<AppointmentProvider>(context, listen: false);
       await appointmentProvider.createAppointment(appointment);
-      print('Appointment created successfully.');
+      LoggerService.debug('Appointment created successfully.');
 
-      print('Fetching user details...');
+      LoggerService.debug('Fetching user details...');
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       final client = await userProvider.getUserById(authProvider.userId!);
       final clientName = client?.name ?? 'Un client';
-      print('Client name: $clientName');
+      LoggerService.debug('Client name: $clientName');
 
       // Envoyer l'email de notification à l'artisan
-      print('Sending notification to artisan...');
+      LoggerService.debug('Sending notification to artisan...');
       final notificationProvider =
           Provider.of<NotificationProvider>(context, listen: false);
       
       // Récupérer les informations de l'artisan pour l'envoi de l'email
       final artisan = await userProvider.getUserById(widget.artisanId);
-      print('Artisan email: ${artisan?.email}, name: ${artisan?.name}');
+      LoggerService.debug('Artisan email: ${artisan?.email}, name: ${artisan?.name}');
       
       await notificationProvider.notifyArtisanOfNewAppointment(
         artisanEmail: artisan?.email ?? '', // Email de l'artisan
@@ -540,17 +541,17 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
         clientEmail: client?.email, // Email du client (pour reply-to)
         artisanName: artisan?.name, // Nom de l'artisan
       );
-      print('Notification sent.');
+      LoggerService.debug('Notification sent.');
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Demande de rendez-vous envoyée.')),
       );
       Navigator.of(context).popUntil(ModalRoute.withName('/client-home'));
     } catch (e, s) {
-      print('=== ERROR in _bookAppointmentForSlot ===');
-      print('Exception: $e');
-      print('Stack trace: $s');
-      print('=====================================');
+      LoggerService.error('=== ERROR in _bookAppointmentForSlot ===');
+      LoggerService.error('Exception: $e');
+      LoggerService.error('Stack trace: $s');
+      LoggerService.error('=====================================');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur lors de la réservation: $e')),
       );
@@ -558,10 +559,10 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
   }
 
   Future<void> _bookAppointmentForPeriod(AppointmentType type) async {
-    print('=== _bookAppointmentForPeriod called with type: $type ===');
+    LoggerService.debug('=== _bookAppointmentForPeriod called with type: $type ===');
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     if (authProvider.userId == null) {
-      print('User not authenticated');
+      LoggerService.warning('User not authenticated');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('Vous devez être connecté pour réserver.')),
@@ -628,26 +629,26 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
     );
 
     try {
-      print('Creating appointment for period...');
+      LoggerService.debug('Creating appointment for period...');
       final appointmentProvider =
           Provider.of<AppointmentProvider>(context, listen: false);
       await appointmentProvider.createAppointment(appointment);
-      print('Appointment for period created successfully.');
+      LoggerService.debug('Appointment for period created successfully.');
 
-      print('Fetching user details for period booking...');
+      LoggerService.debug('Fetching user details for period booking...');
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       final client = await userProvider.getUserById(authProvider.userId!);
       final clientName = client?.name ?? 'Un client';
-      print('Client name for period booking: $clientName');
+      LoggerService.debug('Client name for period booking: $clientName');
 
       // Envoyer l'email de notification à l'artisan
-      print('Sending notification to artisan for period booking...');
+      LoggerService.debug('Sending notification to artisan for period booking...');
       final notificationProvider =
           Provider.of<NotificationProvider>(context, listen: false);
       
       // Récupérer les informations de l'artisan pour l'envoi de l'email
       final artisan = await userProvider.getUserById(widget.artisanId);
-      print('Artisan email for period booking: ${artisan?.email}, name: ${artisan?.name}');
+      LoggerService.debug('Artisan email for period booking: ${artisan?.email}, name: ${artisan?.name}');
       
       await notificationProvider.notifyArtisanOfNewAppointment(
         artisanEmail: artisan?.email ?? '', // Email de l'artisan
@@ -657,17 +658,17 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
         clientEmail: client?.email, // Email du client (pour reply-to)
         artisanName: artisan?.name, // Nom de l'artisan
       );
-      print('Notification for period booking sent.');
+      LoggerService.debug('Notification for period booking sent.');
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Demande de rendez-vous envoyée.')),
       );
       Navigator.of(context).popUntil(ModalRoute.withName('/client-home'));
     } catch (e, s) {
-      print('=== ERROR in _bookAppointmentForPeriod ===');
-      print('Exception: $e');
-      print('Stack trace: $s');
-      print('=====================================');
+      LoggerService.error('=== ERROR in _bookAppointmentForPeriod ===');
+      LoggerService.error('Exception: $e');
+      LoggerService.error('Stack trace: $s');
+      LoggerService.error('=====================================');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur lors de la réservation: $e')),
       );

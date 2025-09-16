@@ -121,11 +121,13 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
       try {
         final appointmentProvider = Provider.of<AppointmentProvider>(context, listen: false);
         await appointmentProvider.deleteAppointment(appointmentId);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Rendez-vous annulé avec succès.')),
         );
         _loadAppointments(); // Refresh the list
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Erreur lors de l'annulation: $e")),
         );
@@ -214,7 +216,7 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
           child: ListTile(
             contentPadding: const EdgeInsets.all(16.0),
             leading: CircleAvatar(
-              backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+              backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
               child: Icon(
                 Icons.calendar_today,
                 color: theme.colorScheme.primary,
