@@ -101,6 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final drawerWidth = screenWidth * 0.45; // 45% de la largeur de l'écran
 
     return AdvancedDrawer(
+      openRatio: 0.65,
       controller: _advancedDrawerController,
       animationCurve: Curves.easeInOut,
       animationDuration: const Duration(milliseconds: 300),

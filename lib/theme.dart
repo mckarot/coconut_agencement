@@ -131,7 +131,11 @@ class AppTheme {
       appBarTheme: const AppBarTheme(
         backgroundColor: primaryColor,
         foregroundColor: surfaceColor,
-        titleTextStyle: headlineSmall,
+        titleTextStyle: TextStyle(
+          fontSize: 20.0,
+          fontWeight: FontWeight.bold,
+          color: surfaceColor, // Utilisation de la couleur blanche du thème
+        ),
         elevation: 0,
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
