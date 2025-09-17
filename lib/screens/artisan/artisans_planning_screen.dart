@@ -4,6 +4,7 @@ import 'package:coconut_agencement/models/service_model.dart';
 import 'package:coconut_agencement/providers/service_provider.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -636,14 +637,21 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
                 Text('Client: ${client?.name ?? 'Non trouvé'}'),
                 Text('Email: ${client?.email ?? 'Non trouvé'}'),
                 if (client?.phone != null) ...[
-                  GestureDetector(
-                    onTap: () => _showCallOptionsDialog(client!.phone!),
-                    child: Text(
-                      'Téléphone: ${client?.phone}',
-                      style: const TextStyle(
-                        color: Colors.blue,
-                        decoration: TextDecoration.underline,
-                      ),
+                  RichText(
+                    text: TextSpan(
+                      style: DefaultTextStyle.of(context).style,
+                      children: [
+                        const TextSpan(text: 'Téléphone: '),
+                        TextSpan(
+                          text: client!.phone,
+                          style: const TextStyle(
+                            color: Colors.blue,
+                            decoration: TextDecoration.underline,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () => _showCallOptionsDialog(client.phone!),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 8.0),
