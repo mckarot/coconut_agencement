@@ -4,6 +4,7 @@ import 'package:coconut_agencement/providers/user_provider.dart';
 import 'package:coconut_agencement/screens/user/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 
 class ArtisanRegistrationScreen extends StatefulWidget {
   const ArtisanRegistrationScreen({super.key});
@@ -20,6 +21,7 @@ class _ArtisanRegistrationScreenState extends State<ArtisanRegistrationScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  String _countryDialCode = '+596'; // Indicatif par défaut (Martinique)
   UserRole _selectedRole = UserRole.client; // Par défaut, client
   bool _isLoading = false;
   String? _errorMessage;
@@ -53,12 +55,15 @@ class _ArtisanRegistrationScreenState extends State<ArtisanRegistrationScreen> {
       );
 
       if (userCredential.user != null) {
+        // Récupérer le numéro de téléphone formaté
+        final formattedPhone = '$_countryDialCode${_phoneController.text}';
+        
         // Créer le profil utilisateur dans Firestore
         final user = UserModel(
           id: userCredential.user!.uid,
           name: _nameController.text.trim(),
           email: _emailController.text.trim(),
-          phone: _phoneController.text.trim(),
+          phone: formattedPhone,
           role: _selectedRole,
         );
 
@@ -172,14 +177,32 @@ class _ArtisanRegistrationScreenState extends State<ArtisanRegistrationScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                IntlPhoneField(
                   controller: _phoneController,
                   decoration: const InputDecoration(
-                    labelText: 'Téléphone (optionnel)',
+                    labelText: 'Téléphone',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.phone),
                   ),
+                  initialCountryCode: 'MQ', // Code pays pour la Martinique
                   keyboardType: TextInputType.phone,
+                  disableLengthCheck: true, // Désactiver la vérification de longueur par défaut
+                  validator: (phone) {
+                    if (phone == null || phone.number.isEmpty) {
+                      return 'Veuillez entrer votre numéro de téléphone';
+                    }
+                    // Vérifier que le numéro local a exactement 9 chiffres
+                    if (phone.number.length != 9) {
+                      return 'Le numéro doit contenir exactement 9 chiffres';
+                    }
+                    return null;
+                  },
+                  onChanged: (phone) {
+                    // Mettre à jour le controller avec uniquement le numéro local
+                    _phoneController.text = phone.number;
+                    // Mettre à jour l'indicatif du pays
+                    _countryDialCode = phone.countryCode;
+                  },
                 ),
                 const SizedBox(height: 16),
                 // Sélection du rôle
@@ -287,13 +310,6 @@ class _ArtisanRegistrationScreenState extends State<ArtisanRegistrationScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                ),
-                const SizedBox(height: 20),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Déjà un compte? Se connecter'),
                 ),
               ],
             ),
