@@ -543,15 +543,18 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
       );
       LoggerService.debug('Notification sent.');
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Demande de rendez-vous envoyée.')),
       );
+      if (!mounted) return;
       Navigator.of(context).popUntil(ModalRoute.withName('/client-home'));
     } catch (e, s) {
       LoggerService.error('=== ERROR in _bookAppointmentForSlot ===');
       LoggerService.error('Exception: $e');
       LoggerService.error('Stack trace: $s');
       LoggerService.error('=====================================');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur lors de la réservation: $e')),
       );
@@ -660,15 +663,18 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
       );
       LoggerService.debug('Notification for period booking sent.');
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Demande de rendez-vous envoyée.')),
       );
+      if (!mounted) return;
       Navigator.of(context).popUntil(ModalRoute.withName('/client-home'));
     } catch (e, s) {
       LoggerService.error('=== ERROR in _bookAppointmentForPeriod ===');
       LoggerService.error('Exception: $e');
       LoggerService.error('Stack trace: $s');
       LoggerService.error('=====================================');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur lors de la réservation: $e')),
       );

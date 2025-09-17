@@ -77,10 +77,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         ),
       );
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 

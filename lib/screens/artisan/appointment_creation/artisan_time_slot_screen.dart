@@ -229,7 +229,7 @@ class _ArtisanTimeSlotScreenState extends State<ArtisanTimeSlotScreen> {
             style: TextStyle(
               color: isEnabled
                   ? theme.colorScheme.onPrimary
-                  : theme.colorScheme.onSurface.withOpacity(0.5),
+                  : theme.colorScheme.onSurface.withValues(alpha: 0.5),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -238,7 +238,7 @@ class _ArtisanTimeSlotScreenState extends State<ArtisanTimeSlotScreen> {
           backgroundColor: isEnabled
               ? theme.colorScheme.primary
               : theme.colorScheme.surfaceContainerHighest,
-          disabledColor: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+          disabledColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8.0),
             side: BorderSide(

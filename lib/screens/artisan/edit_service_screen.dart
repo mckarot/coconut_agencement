@@ -112,18 +112,17 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
         final serviceProvider = Provider.of<ServiceProvider>(context, listen: false);
         await serviceProvider.deleteService(widget.service.id);
 
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Service supprimé avec succès')),
-          );
-          Navigator.pop(context);
-        }
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Service supprimé avec succès')),
+        );
+        if (!mounted) return;
+        Navigator.pop(context);
       } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erreur: $e')),
-          );
-        }
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e')),
+        );
       }
     }
   }
