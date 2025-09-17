@@ -226,26 +226,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text('Client'),
-                          Radio<UserRole>(
-                            value: UserRole.client,
-                            groupValue: _selectedRole,
-                            onChanged: (UserRole? value) {
-                              setState(() {
-                                _selectedRole = value!;
-                              });
-                            },
+                          Expanded(
+                            child: RadioListTile<UserRole>(
+                              title: const Text('Client'),
+                              value: UserRole.client,
+                              groupValue: _selectedRole,
+                              onChanged: (UserRole? value) {
+                                setState(() {
+                                  _selectedRole = value!;
+                                });
+                              },
+                            ),
                           ),
-                          const SizedBox(width: 24),
-                          const Text('Artisan'),
-                          Radio<UserRole>(
-                            value: UserRole.artisan,
-                            groupValue: _selectedRole,
-                            onChanged: (UserRole? value) {
-                              setState(() {
-                                _selectedRole = value!;
-                              });
-                            },
+                          Expanded(
+                            child: RadioListTile<UserRole>(
+                              title: const Text('Artisan'),
+                              value: UserRole.artisan,
+                              groupValue: _selectedRole,
+                              onChanged: (UserRole? value) {
+                                setState(() {
+                                  _selectedRole = value!;
+                                });
+                              },
+                            ),
                           ),
                         ],
                       ),

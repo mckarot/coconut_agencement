@@ -74,21 +74,28 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
       filteredAppointments.sort((a, b) => a.dateTime.compareTo(b.dateTime));
 
       if (mounted) {
-        setState(() {
-          _appointments = filteredAppointments;
-          _userDetails = userDetails;
-          _isLoading = false;
-        });
+        _updateAppointmentsState(filteredAppointments, userDetails);
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Erreur de chargement des rendez-vous: $e')),
-        );
+        _handleLoadingError(context, 'Erreur de chargement des rendez-vous: $e');
       }
     }
+  }
+
+  void _updateAppointmentsState(List<AppointmentModel> appointments, Map<String, UserModel> userDetails) {
+    setState(() {
+      _appointments = appointments;
+      _userDetails = userDetails;
+      _isLoading = false;
+    });
+  }
+
+  void _handleLoadingError(BuildContext context, String message) {
+    setState(() => _isLoading = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   void _filterAppointments(AppointmentStatus? status) {
@@ -118,6 +125,7 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
     );
 
     if (shouldDelete == true) {
+      if (!mounted) return;
       try {
         final appointmentProvider = Provider.of<AppointmentProvider>(context, listen: false);
         await appointmentProvider.deleteAppointment(appointmentId);

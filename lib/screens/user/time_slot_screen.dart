@@ -515,19 +515,20 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
       LoggerService.debug('Creating appointment...');
       final appointmentProvider =
           Provider.of<AppointmentProvider>(context, listen: false);
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final notificationProvider =
+          Provider.of<NotificationProvider>(context, listen: false);
+
       await appointmentProvider.createAppointment(appointment);
       LoggerService.debug('Appointment created successfully.');
 
       LoggerService.debug('Fetching user details...');
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
       final client = await userProvider.getUserById(authProvider.userId!);
       final clientName = client?.name ?? 'Un client';
       LoggerService.debug('Client name: $clientName');
 
       // Envoyer l'email de notification à l'artisan
       LoggerService.debug('Sending notification to artisan...');
-      final notificationProvider =
-          Provider.of<NotificationProvider>(context, listen: false);
       
       // Récupérer les informations de l'artisan pour l'envoi de l'email
       final artisan = await userProvider.getUserById(widget.artisanId);
@@ -635,19 +636,20 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
       LoggerService.debug('Creating appointment for period...');
       final appointmentProvider =
           Provider.of<AppointmentProvider>(context, listen: false);
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final notificationProvider =
+          Provider.of<NotificationProvider>(context, listen: false);
+
       await appointmentProvider.createAppointment(appointment);
       LoggerService.debug('Appointment for period created successfully.');
 
       LoggerService.debug('Fetching user details for period booking...');
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
       final client = await userProvider.getUserById(authProvider.userId!);
       final clientName = client?.name ?? 'Un client';
       LoggerService.debug('Client name for period booking: $clientName');
 
       // Envoyer l'email de notification à l'artisan
       LoggerService.debug('Sending notification to artisan for period booking...');
-      final notificationProvider =
-          Provider.of<NotificationProvider>(context, listen: false);
       
       // Récupérer les informations de l'artisan pour l'envoi de l'email
       final artisan = await userProvider.getUserById(widget.artisanId);
