@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/appointment_model.dart';
 import '../../models/user_model.dart';
@@ -635,7 +636,16 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
                 Text('Client: ${client?.name ?? 'Non trouvé'}'),
                 Text('Email: ${client?.email ?? 'Non trouvé'}'),
                 if (client?.phone != null) ...[
-                  Text('Téléphone: ${client!.phone}'),
+                  GestureDetector(
+                    onTap: () => _showCallOptionsDialog(client!.phone!),
+                    child: Text(
+                      'Téléphone: ${client?.phone}',
+                      style: const TextStyle(
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 8.0),
                 ],
                 const Divider(height: 20),
@@ -690,6 +700,73 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
         return 'Journée entière';
       default:
         return '';
+    }
+  }
+
+  void _showCallOptionsDialog(String phoneNumber) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Options d\'appel',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16.0),
+              ListTile(
+                leading: const Icon(Icons.phone),
+                title: const Text('Appel téléphonique'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _makePhoneCall(phoneNumber);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.message),
+                title: const Text('WhatsApp'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _openWhatsApp(phoneNumber);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _makePhoneCall(String phoneNumber) async {
+    final Uri telUri = Uri(scheme: 'tel', path: phoneNumber);
+    if (await launchUrl(telUri)) {
+      // L'URL a été lancée avec succès
+    } else {
+      // Erreur lors du lancement de l'URL
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Impossible de passer l\'appel')),
+        );
+      }
+    }
+  }
+
+  void _openWhatsApp(String phoneNumber) async {
+    // Formatage du numéro pour WhatsApp (suppression des espaces et caractères spéciaux)
+    final formattedNumber = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+    final Uri whatsappUri = Uri(scheme: 'https', host: 'wa.me', path: formattedNumber);
+    if (await launchUrl(whatsappUri)) {
+      // L'URL a été lancée avec succès
+    } else {
+      // Erreur lors du lancement de l'URL
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Impossible d\'ouvrir WhatsApp')),
+        );
+      }
     }
   }
 
