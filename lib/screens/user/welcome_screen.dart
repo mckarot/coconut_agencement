@@ -1,7 +1,7 @@
 import 'package:coconut_agencement/providers/user_provider.dart';
+import 'package:coconut_agencement/screens/guest/client_registration_screen.dart';
 import 'package:coconut_agencement/screens/guest/guest_service_selection_screen.dart';
 import 'package:coconut_agencement/screens/user/privacy_policy_screen.dart';
-import 'package:coconut_agencement/screens/user/register_screen.dart';
 import 'package:coconut_agencement/screens/user/terms_of_use_screen.dart';
 import 'package:coconut_agencement/widgets/fade_route.dart';
 import 'package:flutter/gestures.dart';
@@ -114,7 +114,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            FadeRoute(page: const RegisterScreen()),
+                            FadeRoute(page: const ClientRegistrationScreen()),
                           );
                         },
                         style: ElevatedButton.styleFrom(

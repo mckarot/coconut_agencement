@@ -1,4 +1,4 @@
-import 'package:coconut_agencement/screens/user/register_screen.dart';
+import 'package:coconut_agencement/screens/artisan/artisan_registration_screen.dart';
 import 'package:coconut_agencement/widgets/fade_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
@@ -151,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _advancedDrawerController.hideDrawer();
                   Navigator.push(
                     context,
-                    FadeRoute(page: const RegisterScreen()),
+                    FadeRoute(page: const ArtisanRegistrationScreen()),
                   );
                 },
               ),

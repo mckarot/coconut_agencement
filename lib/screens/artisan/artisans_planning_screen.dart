@@ -634,6 +634,10 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
                 const SizedBox(height: 16.0),
                 Text('Client: ${client?.name ?? 'Non trouvé'}'),
                 Text('Email: ${client?.email ?? 'Non trouvé'}'),
+                if (client?.phone != null) ...[
+                  Text('Téléphone: ${client!.phone}'),
+                  const SizedBox(height: 8.0),
+                ],
                 const Divider(height: 20),
                 Text('Service: ${service?.name ?? 'Non trouvé'}'),
                 Text(
@@ -667,7 +671,7 @@ class _ArtisanPlanningScreenState extends State<ArtisanPlanningScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16.0),
+                const SizedBox(height: 16.0),
               ],
             ),
           ),
